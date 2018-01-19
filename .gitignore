@@ -1,2 +1,5 @@
 # ios noise
 .DS_Store
+
+# IDE
+.idea/*

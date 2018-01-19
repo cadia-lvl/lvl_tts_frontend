@@ -1,6 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
-Example for an entry point for a program using main and argparse
+The pron_dict module processes an ASR pronunciation dictionary, containing entries of the form 'word     transcription',
+computes the necessary additional information for TTS (part-of-speech, syllabification and stress marks) and
+outputs the results in the Festvox format.
+
+Example:
+    Input entry:
+
+    adolfsdóttir     a: t O l f s t ou h d I r
+
+    Output entry:
+
+    ("adolfsdóttir" n (((a:) 1) ((t O l f s) 3) ((t ou h) 1) ((d I r) 3)))
+
+
 """
+__license__ = 'Apache 2.0 (see: LICENSE)'
 
 import argparse
 
