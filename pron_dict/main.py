@@ -20,13 +20,25 @@ Example:
 __license__ = 'Apache 2.0 (see: LICENSE)'
 
 import argparse
+import gpos
+
+from entry import PronDictEntry
+
+
+def init_pron_dict(dict_file):
+    pron_dict = []
+
+    for line in dict_file:
+        word, transcr = line.split('\t')
+        pron_dict.append(PronDictEntry(word, transcr))
+
+    return pron_dict
+
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='description of project/program', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('i', type=argparse.FileType('r'), help='Input data')
-    parser.add_argument('o', type=argparse.FileType('w'), help='Output file')
-    parser.add_argument('--some_int_arg', default=10)
-    parser.add_argument('--some_string_arg', default='ent')
+    parser = argparse.ArgumentParser(description='pronunciation dictionary for TTS', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('i', type=argparse.FileType('r'), help='ASR pronunciation dictionary')
+   # parser.add_argument('o', type=argparse.FileType('w'), default='', help='Output: TTS pronunciation dictionary')
 
     return parser.parse_args()
 
@@ -34,6 +46,8 @@ def parse_args():
 def main():
 
     args = parse_args()
+    pron_dict = init_pron_dict(args.i)
+    gpos.perform_gpos_for_entry_list(pron_dict)
 
 
 if __name__ == '__main__':
