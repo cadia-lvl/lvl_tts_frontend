@@ -27,3 +27,13 @@ class PronDictEntry:
 
     def __repr__(self):
         return self.__str__()
+
+    def format_syllables(self):
+        formatted_string = '('
+        for syll in self.syllables:
+            formatted_string += '((' + syll.content + ') ' + str(syll.stress) + ') '
+
+        return formatted_string.strip()
+
+    def cmu_format(self):
+        return '("' + self.word + '" ' + self.gpos + self.format_syllables() + ')'

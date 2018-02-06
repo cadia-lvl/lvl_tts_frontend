@@ -13,7 +13,7 @@ Example:
 
     Output entry:
 
-    ("adolfsdóttir" n (((a:) 1) ((t O l f s) 3) ((t ou h) 1) ((d I r) 3)))
+    ("adolfsdóttir" n (((a:) 1) ((t O l f s) 3) ((t ou h) 1) ((d I r) 3))))
 
 
 """
@@ -21,6 +21,9 @@ __license__ = 'Apache 2.0 (see: LICENSE)'
 
 import argparse
 import gpos
+import syllabification
+import stress
+
 
 from entry import PronDictEntry
 
@@ -48,6 +51,18 @@ def main():
     args = parse_args()
     pron_dict = init_pron_dict(args.i)
     gpos.perform_gpos_for_entry_list(pron_dict)
+
+    syllabified = []
+
+    for entry in pron_dict:
+        syllab_word = syllabification.SyllabifiedWord(entry.transcript, entry.word)
+        syllab_word.syllabify()
+        syllabified.append(syllab_word)
+
+    for entry in syllabified:
+        print(entry.cmu_format())
+
+
 
 
 if __name__ == '__main__':
