@@ -46,84 +46,78 @@ CONS_CLUSTERS = ['s v', 's j', 'p j', 'p r', 't v', 't j', 't r', 'k v', 'k j', 
                  'p_h j', 'p_h r', 't_h v', 't_h j', 't_h r', 'k_h v', 'k_h j', 'k_h r', 'f r', 'f j']
 
 
-class SyllabifiedWord:
+def syllabify_on_nucleus(entry):
+    """
+    First round of syllabification. Divide the word such that each syllable
+    starts with a vowel (except the first one, if the word starts with a consonant/consonants).
+    """
+    current_syllable = syllable.Syllable()
+    for phone in entry.transcription_arr:
+        if current_syllable.has_nucleus and phone in VOWELS:
+            entry.syllables.append(current_syllable)
+            current_syllable = syllable.Syllable()
 
-    def __init__(self, transcript, word=''):
-        self.word = word
-        self.transcr = transcript
-        self.arr = transcript.split()
-        self.syllables = []  # an array of syllable.Syllable objects
+        if phone in VOWELS:
+            current_syllable.has_nucleus = True
 
-    #def last_stress(self):
-    #    if len(self.syllables) > 0:
-    #        return self.syllables[-1].stress
-    #    else:
-    #        return NO_STRESS
+        current_syllable.append(phone)
+    # append last syllable
+    entry.syllables.append(current_syllable)
 
-    def update_syllables(self, ind, prev_syll, syll):
-        self.syllables[ind - 1] = prev_syll
-        self.syllables[ind] = syll
 
-    def syllabify_on_nucleus(self):
-        """
-        First round of syllabification. Divide the word such that each syllable
-        starts with a vowel (except the first one, if the word starts with a consonant/consonants).
-        """
-        current_syllable = syllable.Syllable()
-        for phone in self.arr:
-            if current_syllable.has_nucleus and phone in VOWELS:
-                self.syllables.append(current_syllable)
-                current_syllable = syllable.Syllable()
+def identify_clusters(entry):
+    for syll in entry.syllables:
+        for clust in CONS_CLUSTERS:
+            if syll.content.strip().endswith(clust):
+                syll.cons_cluster = clust
 
-            if phone in VOWELS:
-                current_syllable.has_nucleus = True
 
-            current_syllable.append(phone)
-        # append last syllable
-        self.syllables.append(current_syllable)
+def syllabify_final(entry):
+    """
+    Iterate once more over the syllable structure and move consonants from rhyme to onset
+    where appropriate, i.e. where one syllable ends with a consonant and the
+    next one starts with a vowel. If a syllable ends with a consonant cluster, the whole
+    cluster is moved to the next syllable, otherwise only the last consonant.
+    """
 
-    def identify_clusters(self):
-        for syll in self.syllables:
-            for clust in CONS_CLUSTERS:
-                if syll.content.strip().endswith(clust):
-                    syll.cons_cluster = clust
+    for ind, syll in enumerate(entry.syllables):
+        if ind == 0:
+            continue
+        prev_syll = entry.syllables[ind - 1]
+        # syllable after the first syllable starts with a vowel - look for consonant onset in previous syllable
+        # and move the consonant / consonant cluster from the previous to the current syllable
+        if ind > 0 and syll.content[0] in VOWELS:
+            if prev_syll.cons_cluster:
+                # copy cons_cluster to next syllable
+                syll.append_before(prev_syll.cons_cluster)
+                prev_syll.remove_cluster()
+                entry.update_syllables(ind, prev_syll, syll)
+            elif prev_syll.last_phones() not in VOWELS:
+                # handle 'jE' (=é) as one vowel
+                if prev_syll.endswith('j') and syll.startswith('E'):
+                    phone = prev_syll.last_phones(2)
+                    syll.append_before(phone)
+                    prev_syll.content = prev_syll.content[:-(len(phone)+1)]
+                else:
+                    phone = prev_syll.last_phones()
+                    syll.append_before(phone)
+                    prev_syll.content = prev_syll.content[:-(len(phone)+1)]
+                entry.update_syllables(ind, prev_syll, syll)
 
-    def syllabify_final(self):
-        """
-        Iterate once more over the syllable structure and move consonants from rhyme to onset
-        where appropriate, i.e. where one syllable ends with a consonant and the
-        next one starts with a vowel. If a syllable ends with a consonant cluster, the whole
-        cluster is moved to the next syllable, otherwise only the last consonant.
-        """
 
-        for ind, syll in enumerate(self.syllables):
-            if ind == 0:
-                continue
-            prev_syll = self.syllables[ind - 1]
-            # syllable after the first syllable starts with a vowel - look for consonant onset in previous syllable
-            # and move the consonant / consonant cluster from the previous to the current syllable
-            if ind > 0 and syll.content[0] in VOWELS:
-                if prev_syll.cons_cluster:
-                    # copy cons_cluster to next syllable
-                    syll.append_before(prev_syll.cons_cluster)
-                    prev_syll.remove_cluster()
-                    self.update_syllables(ind, prev_syll, syll)
-                elif prev_syll.last_phones() not in VOWELS:
-                    # handle 'jE' (=é) as one vowel
-                    if prev_syll.endswith('j') and syll.startswith('E'):
-                        phone = prev_syll.last_phones(2)
-                        syll.append_before(phone)
-                        prev_syll.content = prev_syll.content[:-(len(phone)+1)]
-                    else:
-                        phone = prev_syll.last_phones()
-                        syll.append_before(phone)
-                        prev_syll.content = prev_syll.content[:-(len(phone)+1)]
-                    self.update_syllables(ind, prev_syll, syll)
+def syllabify(entry):
+    syllabify_on_nucleus(entry)
+    identify_clusters(entry)
+    syllabify_final(entry)
 
-    def syllabify(self):
-        self.syllabify_on_nucleus()
-        self.identify_clusters()
-        self.syllabify_final()
+
+def syllabify_dict(pron_dict):
+    syllabified = []
+    for entry in pron_dict:
+        syllabify(entry)
+        syllabified.append(entry)
+
+    return syllabified
 
 
 

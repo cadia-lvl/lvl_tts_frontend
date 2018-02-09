@@ -52,17 +52,11 @@ def main():
     pron_dict = init_pron_dict(args.i)
     gpos.perform_gpos_for_entry_list(pron_dict)
 
-    syllabified = []
-
-    for entry in pron_dict:
-        syllab_word = syllabification.SyllabifiedWord(entry.transcript, entry.word)
-        syllab_word.syllabify()
-        syllabified.append(syllab_word)
-
-    for entry in syllabified:
+    syllabified = syllabification.syllabify_dict(pron_dict)
+    syllab_with_stress = stress.set_stress(syllabified)
+    print('MNCL')
+    for entry in syllab_with_stress:
         print(entry.cmu_format())
-
-
 
 
 if __name__ == '__main__':

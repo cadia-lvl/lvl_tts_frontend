@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import syllabification
+import entry
 
 # max number of syllables for a word only having primary stress on first syllable, other syllables without stress
 ONE_STRESS_SYLL_COUNT = 4
@@ -15,6 +15,13 @@ ENDING_SYLLABLES = ['a', 'i', 'u', 'ar', 'ir', 'ur', 'is', 'um', 'na', 'ni', 'nu
                     'ngur', 'inu', 'stu', 'ra', 'ndi', 'da', 'di', 'un', 'uð', 'ri', 'gur', 'ga', 'gðar', 'gðir', 'gður',
                     'nga', 'leg', 'lega', 'nlegt', 'legt', 'semi', 'ning', 'arinnar', 'ði', 'tha', 'ðar', 'ðir', 'sti',
                     'nda', 'ba', 'ngu', 'inni', 'ður', 'ngum', 'ann', 'anna', 'anni', 'ara', 'ari', 'as', 'að', 'enn', 'í', 'ía']
+
+
+def last_stress(pron_dict_entry):
+    if len(pron_dict_entry.syllables) > 0:
+        return pron_dict_entry.syllables[-1].stress
+    else:
+        return NO_STRESS
 
 
 def same_word_with_ending(short_word, long_word):
@@ -46,6 +53,8 @@ def synchronize_stress(short_word, long_word):
         return
 
     for i, elem in enumerate(short_word.syllables):
+        if i >= len(long_word.syllables) or i >= len(short_word.syllables):
+            print('i: ' + str(i) + ' long: ' + str(long_word.syllables) + ' short: ' + str(short_word.syllables))
         long_word.syllables[i].stress = short_word.syllables[i].stress
 
 
@@ -61,7 +70,7 @@ def should_add_primary_stress(current_word, modifier):
     syllables of both words should have primary stress, False otherwise
     """
     if len(current_word.syllables) > len(modifier.syllables) and \
-        modifier.last_stress() != PRIMARY_STRESS and not \
+        last_stress(modifier) != PRIMARY_STRESS and not \
         same_word_with_ending(modifier, current_word):
             return True
 
@@ -84,7 +93,7 @@ def set_stress(syllabified_words):
     """
     result_list = []
     modifiers = []
-    last_word = syllabification.SyllabifiedWord('')
+    last_word = entry.PronDictEntry('')
     for current in syllabified_words:
         current.syllables[0].stress = PRIMARY_STRESS
         if current.word.startswith(last_word.word):

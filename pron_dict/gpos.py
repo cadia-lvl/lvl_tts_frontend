@@ -116,7 +116,7 @@ def perform_gpos_for_dict(dictionary):
         gpos_dict.append(entry)
 
     conn.close()
-    print_statistics(statistics)
+    #print_statistics(statistics)
     return gpos_dict
 
 
@@ -136,7 +136,7 @@ def perform_gpos_for_entry_list(entry_list):
         dict_entry.gpos = get_priority_pos(pos_list)
 
     conn.close()
-    print_statistics(statistics)
+    #print_statistics(statistics)
 
 
 def main():
