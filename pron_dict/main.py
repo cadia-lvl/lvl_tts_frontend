@@ -23,6 +23,7 @@ import argparse
 import gpos
 import syllabification
 import stress
+import compounds
 
 
 from entry import PronDictEntry
@@ -30,11 +31,15 @@ from entry import PronDictEntry
 
 def init_pron_dict(dict_file):
     pron_dict = []
-
+    conn = compounds.open_connection()
     for line in dict_file:
         word, transcr = line.split('\t')
-        pron_dict.append(PronDictEntry(word, transcr))
-
+        entry = PronDictEntry(word, transcr)
+        comp = compounds.get_compound(word, conn)
+        if comp:
+            entry.modifier = comp[1]
+            entry.base = comp[2]
+        pron_dict.append(entry)
     return pron_dict
 
 
@@ -54,9 +59,9 @@ def main():
 
     syllabified = syllabification.syllabify_dict(pron_dict)
     syllab_with_stress = stress.set_stress(syllabified)
-    print('MNCL')
-    for entry in syllab_with_stress:
-        print(entry.cmu_format())
+   # print('MNCL')
+   # for entry in syllab_with_stress:
+   #     print(entry.cmu_format())
 
 
 if __name__ == '__main__':

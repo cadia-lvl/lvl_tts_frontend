@@ -21,6 +21,8 @@ class PronDictEntry:
         self.transcription_arr = self.transcript.split()
         self.gpos = 'nil'  # guessed part-of-speech
         self.syllables = []
+        self.base = ''
+        self.modifier = ''
 
     def __str__(self):
         return self.word + '\t' + self.gpos + '\t' + self.transcript
