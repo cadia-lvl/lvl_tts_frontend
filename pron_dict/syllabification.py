@@ -32,6 +32,7 @@ for the next syllable):
 """
 
 import syllable
+import compounds
 
 
 # each syllable has a vowel as a nucleus. 'e' and 'o' aren't actually in the inventory, but we need
@@ -44,6 +45,57 @@ VOWELS = ['a', 'a:', 'O', 'O:', 'u', 'u:', '9', '9:', 'Y', 'Y:', 'E', 'E:', 'I',
 # valid ('sr', 'pv', 'fv')
 CONS_CLUSTERS = ['s v', 's j', 'p j', 'p r', 't v', 't j', 't r', 'k v', 'k j', 'k r',
                  'p_h j', 'p_h r', 't_h v', 't_h j', 't_h r', 'k_h v', 'k_h j', 'k_h r', 'f r', 'f j']
+
+
+MODIFIER_MAP = compounds.get_modifier_map()
+HEAD_MAP = compounds.get_head_map()
+MIN_COMP_LEN = 4
+MIN_INDEX = 2
+
+
+def is_compound(word):
+    n = MIN_INDEX
+
+    while n < len(word) - 2:
+        head = word[n:]
+        if head in HEAD_MAP:
+            if word[:n] in MODIFIER_MAP:
+                return word[:n], head
+            else:
+                return '', head
+        n += 1
+
+    return '', ''
+
+
+def syllabify_on_subwords(entry, complist):
+    """
+    If entry is a compound, start syllabification on modifier-head
+    :param entry:
+    :return:
+    """
+
+    if len(entry.word) <= MIN_COMP_LEN:
+        return
+
+    word_to_divide = entry.word
+
+    mod, head = is_compound(word_to_divide)
+    if len(mod) > 0 and len(head) > 0:
+        #print(mod + ' - ' + head)
+        return
+
+    elif len(head) > 0:
+        #print(head + ' is a valid headword in: ' + word_to_divide)
+        return
+
+    elif len(word_to_divide) > 10:
+        complist.append(word_to_divide)
+        return
+
+
+    return entry
+
 
 
 def syllabify_on_nucleus(entry):
@@ -105,17 +157,26 @@ def syllabify_final(entry):
                 entry.update_syllables(ind, prev_syll, syll)
 
 
-def syllabify(entry):
+def syllabify(entry, complist):
+
+    syllabify_on_subwords(entry, complist)
     syllabify_on_nucleus(entry)
     identify_clusters(entry)
     syllabify_final(entry)
 
+    return entry
+
 
 def syllabify_dict(pron_dict):
+    complist = []
     syllabified = []
     for entry in pron_dict:
-        syllabify(entry)
+        syllabify(entry, complist)
         syllabified.append(entry)
+
+    complist.sort(key = lambda x: x[::-1])
+    for comp in complist:
+        print(comp)
 
     return syllabified
 

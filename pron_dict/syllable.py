@@ -60,7 +60,7 @@ class Syllable:
 
     def index_of_cluster(self):
         if self.cons_cluster:
-            return self.content.index(self.cons_cluster)
+            return self.content.rfind(self.cons_cluster)
         else:
             return -1
 

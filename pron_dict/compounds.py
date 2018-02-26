@@ -14,7 +14,10 @@ import entry
 DATABASE = '<path-to-database>'
 DATABASE = '/Users/anna/PycharmProjects/tts/dictionary.db'
 
-SQL_SELECT = 'SELECT * FROM compound WHERE word = ?'
+SQL_SELECT = 'SELECT * FROM compound'
+SQL_SELECT_COMPOUND = 'SELECT * FROM compound WHERE word = ?'
+SQL_SELECT_MODIFIERS = 'SELECT * FROM compound WHERE modifier = ?'
+SQL_SELECT_HEADS = 'SELECT * FROM compound WHERE head = ?'
 
 
 def create_connection(db_file):
@@ -26,10 +29,38 @@ def create_connection(db_file):
 
 
 def get_compound(wordform, conn):
-    result = conn.execute(SQL_SELECT, (wordform,))
+    result = conn.execute(SQL_SELECT_COMPOUND, (wordform,))
     compound = result.fetchone()
     if compound:
         return compound[1], compound[2], compound[3]
+
+
+def create_map(comp_list, key_index, val_index):
+
+    comp_map = {}
+    for comp in comp_list:
+        if comp[key_index] in comp_map:
+            comp_map[comp[key_index]].append(comp[val_index])
+        else:
+            comp_map[comp[key_index]] = [val_index]
+
+    return comp_map
+
+
+def get_modifier_map():
+    conn = open_connection()
+    result = conn.execute(SQL_SELECT)
+    compounds = result.fetchall()
+    conn.close()
+    return create_map(compounds, 2, 3)
+
+
+def get_head_map():
+    conn = open_connection()
+    result = conn.execute(SQL_SELECT)
+    compounds = result.fetchall()
+    conn.close()
+    return create_map(compounds, 3, 2)
 
 
 def open_connection():
