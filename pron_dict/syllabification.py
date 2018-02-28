@@ -50,6 +50,7 @@ CONS_CLUSTERS = ['s v', 's j', 'p j', 'p r', 't v', 't j', 't r', 'k v', 'k j', 
 
 MODIFIER_MAP = compounds.get_modifier_map()
 HEAD_MAP = compounds.get_head_map()
+TRANSCR_MAP = compounds.get_transcriptions_map()
 MIN_COMP_LEN = 4
 MIN_INDEX = 2
 
@@ -88,20 +89,16 @@ def fix_compound_boundary(entry, comp_head):
     :return:
     """
 
-    transcr_index = len(entry.transcription_arr) - 1
-    head_transcr = ''
-    for c in comp_head[::-1]:
-        if entry.transcription_arr[transcr_index] in letters.LETTER2PHONE_MAP[c]:
-            head_transcr = entry.transcription_arr[transcr_index] + ' ' + head_transcr
-            transcr_index -= 1
-        else:
-            break
-
-    if len(head_transcr) == 0:
+    head_transcr = TRANSCR_MAP[comp_head]
+    head_syllable_index = entry.transcript.rfind(head_transcr)
+    if head_syllable_index <= 0:
+        print("did not find transcription of " + comp_head + "!")
+        print("transcription in db: " + head_transcr + ", compound transcr: " + entry.transcript)
         return
+
     else:
         modifier_syll = syllable.Syllable()
-        modifier_syll.content = ' '.join(entry.transcription_arr[0:transcr_index+1])
+        modifier_syll.content = entry.transcript[0:head_syllable_index]
         modifier_syll.fixed_end = True
         head_syll = syllable.Syllable()
         head_syll.content = head_transcr

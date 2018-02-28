@@ -15,8 +15,11 @@ class TestSyllabification(unittest.TestCase):
 
         for entry in syllab:
             if entry.word == 'skrautskrift':
+                res_syllables = []
+                for syll in entry.syllables:
+                    res_syllables.append(syll.content)
                 self.assertEqual('s k r 9Y: t s k r I f t', entry.transcript)
-                self.assertEqual(['s k r 9Y: t', 's k r I f t'], entry.syllables)
+                self.assertEqual(['s k r 9Y: t ', 's k r I f t '], res_syllables)
 
     """
     def test_stress(self):

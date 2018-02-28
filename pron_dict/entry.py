@@ -45,3 +45,25 @@ class PronDictEntry:
 
     def cmu_format(self):
         return '("' + self.word + '" ' + self.gpos + ' ' + self.format_syllables() + ')'
+
+
+class LexicalEntry:
+
+    def __init__(self, word='', transcr=''):
+        self.word = word
+        self.transcript = transcr
+
+    def __str__(self):
+        return self.word + '\t' + self.transcript
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Compound:
+
+    def __init__(self, comp=None, modif=None, head=None):
+        self.comp = comp
+        self.modifier = modif
+        self.head = head
+

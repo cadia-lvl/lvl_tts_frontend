@@ -14,11 +14,12 @@ import entry
 DATABASE = '<path-to-database>'
 DATABASE = '/Users/anna/PycharmProjects/tts/dictionary.db'
 
-SQL_SELECT = 'SELECT * FROM compound'
-SQL_SELECT_COMPOUND = 'SELECT * FROM compound WHERE word = ?'
-SQL_SELECT_MODIFIERS = 'SELECT * FROM compound WHERE modifier = ?'
-SQL_SELECT_HEADS = 'SELECT * FROM compound WHERE head = ?'
+SQL_SELECT = 'SELECT * FROM compound_transcr'
+SQL_SELECT_COMPOUND = 'SELECT * FROM compound_transcr WHERE word = ?'
+SQL_SELECT_MODIFIERS = 'SELECT * FROM compound_transcr WHERE modifier = ?'
+SQL_SELECT_HEADS = 'SELECT * FROM compound_transcr WHERE head = ?'
 
+SQL_SELECT_TRANSCR = 'SELECT * FROM frob'
 
 def create_connection(db_file):
     try:
@@ -62,6 +63,16 @@ def get_head_map():
     conn.close()
     return create_map(compounds, 3, 2)
 
+
+def get_transcriptions_map():
+    conn = open_connection()
+    result = conn.execute(SQL_SELECT_TRANSCR)
+    transcriptions = result.fetchall()
+    transcr_dict = {}
+    for transcr in transcriptions:
+        transcr_dict[transcr[1]] = transcr[2]
+
+    return transcr_dict
 
 def open_connection():
     return create_connection(DATABASE)
