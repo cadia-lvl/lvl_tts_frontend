@@ -41,7 +41,7 @@ Example:
     
 3) Sanity check: control each syllabified word and see if it does not definitely have a vowel
 
-4) Double entries:
+4) Double entries: DONE
 
 ("fleiri" j (((f l ei ) 1) ((r I ) 0)))
 ("fleiri" j (((f l ei: ) 1) ((r I ) 0)))

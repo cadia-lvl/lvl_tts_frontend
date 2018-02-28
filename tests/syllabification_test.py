@@ -9,7 +9,6 @@ from pron_dict import stress
 
 class TestSyllabification(unittest.TestCase):
 
-    @unittest.skip("skip dict syllab")
     def test_syllab_dict(self):
         test_dict = self._get_test_dict1()
         syllab = syllabification.syllabify_dict(test_dict)
@@ -49,7 +48,18 @@ class TestSyllabification(unittest.TestCase):
         syllab = syllabification.syllabify(elem)
         self.assertEqual(['s t r au: N k', 't r u a D r a'], syllab.syllables)
 
+    def test_je_syllables(self):
 
+        elem = entry.PronDictEntry('víetnamstríðinu', 'v i j E h t n a m s t r i: D I n Y')
+        syllab = syllabification.syllabify(elem)
+        res_syllables = []
+        for syll in syllab.syllables:
+            res_syllables.append(syll.content)
+
+        self.assertEqual(['v i ', 'j E h t ', 'n a m ', 's t r i: ', 'D I ', 'n Y '], res_syllables)
+
+
+    @unittest.skip('skip compound')
     def test_compound_analysis(self):
         elem = entry.PronDictEntry('ljósvakamiðlar')
         syllabification.syllabify_on_subwords(elem)

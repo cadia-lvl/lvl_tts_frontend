@@ -24,6 +24,7 @@ class PronDictEntry:
         self.head = ''
         self.modifier = ''
         self.full_decomp = ''
+        self.is_compound = False
 
     def __str__(self):
         return self.word + '\t' + self.gpos + '\t' + self.transcript + '\t' + str(self.syllables)
