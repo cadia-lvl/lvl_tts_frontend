@@ -4,68 +4,99 @@ import unittest
 
 from pron_dict import entry
 from pron_dict import syllabification
+from pron_dict import tree_builder
 from pron_dict import stress
 
 
 class TestSyllabification(unittest.TestCase):
 
-    def test_syllab_dict(self):
-        test_dict = self._get_test_dict1()
-        syllab = syllabification.syllabify_dict(test_dict)
+    def get_syllable_arr(self, syllables):
+        syllable_arr = []
+        for syll in syllables:
+            syllable_arr.append(syll.content)
 
-        for entry in syllab:
-            if entry.word == 'skrautskrift':
-                res_syllables = []
-                for syll in entry.syllables:
-                    res_syllables.append(syll.content)
-                self.assertEqual('s k r 9Y: t s k r I f t', entry.transcript)
-                self.assertEqual(['s k r 9Y: t ', 's k r I f t '], res_syllables)
+        return syllable_arr
 
-    """
-    def test_stress(self):
-        test_dict = self._get_test_dict1()
-        syllab = syllabification.syllabify_dict(test_dict)
-        syllab_with_stress = stress.set_stress(syllab)
-        for entry in syllab_with_stress:
-            if entry.word == 'skrautskrift':
-                print(entry)
-                self.assertEqual(['s k r 9Y: t', 's k r I f t'], entry.syllables)
 
-    """
-
-    @unittest.skip("skip single syllab")
     def test_single_syllab(self):
-        elem = entry.PronDictEntry('strandríki', 's t r a n t r i c ɪ')
-        syllab = syllabification.syllabify(elem)
-        self.assertEqual(['s t r a n t', 'r i c I'], syllab.syllables)
 
-        elem = entry.PronDictEntry('strandríkja', 's t r a n t r i c a')
-        syllab = syllabification.syllabify(elem)
-        self.assertEqual(['s t r a n t', 'r i c a'], syllab.syllables)
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('strandríki', 's t r a n t r i c I'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+        self.assertEqual(['s t r a n t ', 'r i ', 'c I '], res_syllables)
 
-        elem = entry.PronDictEntry('strangtrúaðir', 's t r au: N k t r u a D I r')
-        syllab = syllabification.syllabify(elem)
-        self.assertEqual(['s t r au: N k', 't r u a D I r'], syllab.syllables)
+        comp_tree = tree_builder.build_compound_tree(entry.PronDictEntry('strandríkja', 's t r a n t r i c a'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+        self.assertEqual(['s t r a n t ', 'r i ', 'c a '], res_syllables)
 
-        elem = entry.PronDictEntry('strangtrúaðra', 's t r au: N k t r u a D r a')
-        syllab = syllabification.syllabify(elem)
-        self.assertEqual(['s t r au: N k', 't r u a D r a'], syllab.syllables)
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('strangtrúaðir', 's t r au: N k t r u a D I r'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+        self.assertEqual(['s t r au: N k ', 't r u ', 'a ', 'D I r '], res_syllables)
+
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('strangtrúaðra', 's t r au: N k t r u a D r a'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+        self.assertEqual(['s t r au: N k ', 't r u ', 'a D ', 'r a '], res_syllables)
 
     def test_je_syllables(self):
 
-        elem = entry.PronDictEntry('víetnamstríðinu', 'v i j E h t n a m s t r i: D I n Y')
-        syllab = syllabification.syllabify(elem)
-        res_syllables = []
-        for syll in syllab.syllables:
-            res_syllables.append(syll.content)
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('víetnamstríðinu', 'v i j E h t n a m s t r i: D I n Y'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
 
         self.assertEqual(['v i ', 'j E h t ', 'n a m ', 's t r i: ', 'D I ', 'n Y '], res_syllables)
 
-
-    @unittest.skip('skip compound')
     def test_compound_analysis(self):
-        elem = entry.PronDictEntry('ljósvakamiðlar')
-        syllabification.syllabify_on_subwords(elem)
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('ljósvakamiðlar', 'l j ou: s v a k a m I D l a r'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+
+        self.assertEqual(['l j ou: s ', 'v a ', 'k a ', 'm I D ', 'l a r '], res_syllables)
+
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('afbragðsgott', 'a v p r a G s k O h t'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+
+        self.assertEqual(['a v ', 'p r a G s ', 'k O h t '], res_syllables)
+
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('afmælisbarninu', 'a m ai l I s p a r t n I n Y'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+
+        self.assertEqual(['a ', 'm ai ', 'l I s ', 'p a r t ', 'n I ', 'n Y '], res_syllables)
+
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('gjaldeyrisvarasjóð', 'c a l t ei r I s v a r a s j ou: D'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+
+        # self.assertEqual(['c a l t ', 'ei ', 'r I s ', 'v a ', 'r a ', 's j ou: D '], res_syllables)
+
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('parkinsonssamtökin', 'p_h a r_0 c I n s O n s a m t 9 c I n'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+
+        self.assertEqual(['p_h a r_0 ', 'c I n ', 's O n ', 's a m ', 't 9 ', 'c I n '], res_syllables)
 
 
     def _get_test_dict1(self):

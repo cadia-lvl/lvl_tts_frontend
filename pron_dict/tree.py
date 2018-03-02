@@ -2,6 +2,22 @@
 # -*- coding: utf-8 -*-
 
 
+class CompoundTree:
+    def __init__(self, entry):
+        self.elem = entry
+        self.left = None
+        self.right = None
+
+    def preorder(self):
+        if not self.left:
+            print(self.elem)
+        if self.left:
+            self.left.preorder()
+        if self.right:
+            self.right.preorder()
+
+
+
 class BinaryTree:
     def __init__(self):
         self.data = None

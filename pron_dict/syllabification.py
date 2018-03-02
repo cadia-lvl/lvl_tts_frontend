@@ -32,8 +32,6 @@ for the next syllable):
 """
 
 import syllable
-import compounds
-import letters
 
 
 # each syllable has a vowel as a nucleus. 'e' and 'o' aren't actually in the inventory, but we need
@@ -47,88 +45,6 @@ VOWELS = ['a', 'a:', 'O', 'O:', 'u', 'u:', '9', '9:', 'Y', 'Y:', 'E', 'E:', 'I',
 CONS_CLUSTERS = ['s v', 's j', 'p j', 'p r', 't v', 't j', 't r', 'k v', 'k j', 'k r',
                  'p_h j', 'p_h r', 't_h v', 't_h j', 't_h r', 'k_h v', 'k_h j', 'k_h r', 'f r', 'f j']
 
-
-MODIFIER_MAP = compounds.get_modifier_map()
-HEAD_MAP = compounds.get_head_map()
-TRANSCR_MAP = compounds.get_transcriptions_map()
-MIN_COMP_LEN = 4
-MIN_INDEX = 2
-
-
-def extract_compound_components(word):
-    """
-    TODO: this could search more exhaustingly for a valid modifier and head. Now only the longest possible head
-    is extracted, regardless if a valid modifier is found or not. Possibly a shorter head would allow for
-    a valid modifier.
-
-    :param word:
-    :return: extracted modifier and head if found, otherwise an empty string for each not found component
-    """
-    n = MIN_INDEX
-
-    while n < len(word) - 2:
-        head = word[n:]
-        if head in HEAD_MAP:
-            if word[:n] in MODIFIER_MAP:
-                return word[:n], head
-            else:
-                return '', head
-        n += 1
-
-    return '', ''
-
-
-def fix_compound_boundary(entry, comp_head):
-    """
-    - find index of comp_head
-    - find mapping phone
-    - search for phone index in phone string (note that phones are space separated!
-    - create two syllables: one with fixed end (mod) and one with fixed start (head)
-    :param entry:
-    :param comp_head:
-    :return:
-    """
-
-    head_transcr = TRANSCR_MAP[comp_head]
-    head_syllable_index = entry.transcript.rfind(head_transcr)
-    if head_syllable_index <= 0:
-        print("did not find transcription of " + comp_head + "!")
-        print("transcription in db: " + head_transcr + ", compound transcr: " + entry.transcript)
-        return
-
-    else:
-        modifier_syll = syllable.Syllable()
-        modifier_syll.content = entry.transcript[0:head_syllable_index]
-        modifier_syll.fixed_end = True
-        head_syll = syllable.Syllable()
-        head_syll.content = head_transcr
-        head_syll.fixed_start = True
-        entry.syllables.append(modifier_syll)
-        entry.syllables.append(head_syll)
-        entry.is_compound = True
-
-
-def syllabify_on_subwords(entry):
-    """
-    If entry is a compound, start syllabification on modifier-head
-    :param entry:
-    :return:
-    """
-
-    if len(entry.word) <= MIN_COMP_LEN:
-        return entry
-
-    word_to_divide = entry.word
-
-    mod, head = extract_compound_components(word_to_divide)
-    # TODO: do both parts need to be valid?
-    if len(mod) > 0 and len(head) > 0:
-        fix_compound_boundary(entry, head)
-
-    elif len(head) > 0:
-        fix_compound_boundary(entry, head)
-
-    return entry
 
 
 def divide_syllable(syllable):
@@ -170,6 +86,7 @@ def syllabify_on_nucleus(transcription_arr):
     # append last syllable
     syllables.append(current_syllable)
     return syllables
+
 
 def identify_clusters(entry):
     for syll in entry.syllables:
@@ -213,24 +130,39 @@ def syllabify_final(entry):
                 entry.update_syllables(ind, prev_syll, syll)
 
 
-def syllabify(entry):
+def syllabify_entry(entry):
 
-    syllabify_on_subwords(entry)
-    if entry.is_compound:
-        entry.syllables = syllabify_compound(entry)
-    else:
-        entry.syllables = syllabify_on_nucleus(entry.transcription_arr)
+    entry.syllables = syllabify_on_nucleus(entry.transcription_arr)
     identify_clusters(entry)
     syllabify_final(entry)
 
-    return entry
+
+def syllabify_tree(entry_tree, syllables):
+    if not entry_tree.left:
+        syllabify_entry(entry_tree.elem)
+        syllables += entry_tree.elem.syllables
+    if entry_tree.left:
+        syllabify_tree(entry_tree.left, syllables)
+    if entry_tree.right:
+        syllabify_tree(entry_tree.right, syllables)
+
+
+def syllabify_tree_dict(tree_dict):
+
+    syllabified = []
+    for entry in tree_dict:
+        syllabify_tree(entry)
+
+        syllabified.append(entry)
+
+    return syllabified
 
 
 def syllabify_dict(pron_dict):
 
     syllabified = []
     for entry in pron_dict:
-        syllabify(entry)
+        syllabify_entry(entry)
         syllabified.append(entry)
 
     return syllabified

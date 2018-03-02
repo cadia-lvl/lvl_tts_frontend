@@ -69,7 +69,7 @@ import argparse
 import gpos
 import syllabification
 import stress
-import compounds
+import tree_builder
 
 
 from entry import PronDictEntry
@@ -77,12 +77,20 @@ from entry import PronDictEntry
 
 def init_pron_dict(dict_file):
     pron_dict = []
-    conn = compounds.open_connection()
     for line in dict_file:
         word, transcr = line.split('\t')
         entry = PronDictEntry(word, transcr)
         pron_dict.append(entry)
     return pron_dict
+
+
+def create_tree_list(pron_dict):
+
+    tree_list = []
+    for entry in pron_dict:
+        t = tree_builder.build_compound_tree(entry)
+        tree_list.append(t)
+    return tree_list
 
 
 def parse_args():
@@ -99,11 +107,13 @@ def main():
     pron_dict = init_pron_dict(args.i)
     gpos.perform_gpos_for_entry_list(pron_dict)
 
-    syllabified = syllabification.syllabify_dict(pron_dict)
+    tree_dict = create_tree_list(pron_dict)
+
+    syllabified = syllabification.syllabify_dict(tree_dict)
     syllab_with_stress = stress.set_stress(syllabified)
-   # print('MNCL')
-   # for entry in syllab_with_stress:
-   #     print(entry.cmu_format())
+    #print('MNCL')
+    #for entry in syllab_with_stress:
+    #    print(entry.cmu_format())
 
 
 if __name__ == '__main__':
