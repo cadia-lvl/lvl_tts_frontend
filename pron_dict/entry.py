@@ -36,7 +36,7 @@ class PronDictEntry:
         self.syllables[ind - 1] = prev_syll
         self.syllables[ind] = syll
 
-    def format_syllables(self):
+    def cmu_format_syllables(self):
         formatted_string = '('
         for syll in self.syllables:
             formatted_string += '((' + syll.content + ') ' + str(syll.stress) + ') '
@@ -44,7 +44,18 @@ class PronDictEntry:
         return formatted_string.strip() + ')'
 
     def cmu_format(self):
-        return '("' + self.word + '" ' + self.gpos + ' ' + self.format_syllables() + ')'
+        return '("' + self.word + '" ' + self.gpos + ' ' + self.cmu_format_syllables() + ')'
+
+
+    def dot_format_syllables(self):
+        sylls = ''
+        for syll in self.syllables:
+            sylls += syll.content.strip() + '.'
+        sylls = sylls[0:-1]
+        return sylls
+
+    def syllable_format(self):
+        return self.word + ' - ' + self.dot_format_syllables()
 
 
 class LexicalEntry:
