@@ -6,11 +6,21 @@ import tree
 import entry
 
 
+VOWELS = ['a', 'á', 'e', 'é', 'i', 'í', 'o', 'ó', 'u', 'ú', 'y', 'ý', 'ö']
 MODIFIER_MAP = compounds.get_modifier_map()
 HEAD_MAP = compounds.get_head_map()
 TRANSCR_MAP = compounds.get_transcriptions_map()
 MIN_COMP_LEN = 4
 MIN_INDEX = 2       # the position from which to start searching for a head word
+
+
+def contains_vowel(word):
+
+    for c in word:
+        if c in VOWELS:
+            return True
+
+    return False
 
 
 def compare_transcripts(comp_transcript, head_transcript):
@@ -23,23 +33,23 @@ def compare_transcripts(comp_transcript, head_transcript):
     comp_ind = len(comp_transcript) - 1
 
     while head_ind >= 0:
-        if head_transcript[head_ind] == comp_transcript[comp_ind]:
-            head_ind -= 2
-            comp_ind -= 2
-        elif head_transcript[head_ind] == ':':
+        head_char = head_transcript[head_ind]
+        comp_char = comp_transcript[comp_ind]
+        if head_char == comp_char:
             head_ind -= 1
-        elif comp_transcript[comp_ind] == ':':
             comp_ind -= 1
-        elif head_transcript[head_ind] == '0' or head_transcript[head_ind] == 'h':
+        elif head_char == ':':
+            head_ind -= 1
+        elif comp_char == ':':
+            comp_ind -= 1
+        elif head_char == '0' or head_char == 'h':
             head_ind -= 2
-        elif comp_transcript[comp_ind] == '0' or comp_transcript[comp_ind] == 'h':
+        elif comp_char == '0' or comp_char == 'h':
             comp_ind -= 2
-        elif head_ind == 0:
-            return comp_ind
         else:
             return -1
 
-    return comp_ind + 2 # make up for the last iteration where head_ind went below 0
+    return comp_ind + 1 # make up for the last iteration where head_ind went below 0
 
 
 
@@ -54,15 +64,15 @@ def extract_transcription(entry, comp_mod, comp_head):
     :return:
     """
 
-    head_transcr = TRANSCR_MAP[comp_head]
+    head_transcr = TRANSCR_MAP[comp_head] if comp_head in TRANSCR_MAP else 'NO_TRANSCRIPT'
     head_syllable_index = entry.transcript.rfind(head_transcr)
     # words with long vowels might not be transcribed as containing a long vowel in the compound.
     # l E: G Y vs. s k r 9Y: t l E G Y
     if head_syllable_index <= 0:
        head_syllable_index = compare_transcripts(entry.transcript, head_transcr)
     if head_syllable_index <= 0:
-        print("did not find transcription of " + comp_head + "!")
-        print("transcription in db: " + head_transcr + ", compound transcr: " + entry.transcript)
+        #print("did not find transcription of " + comp_head + "!")
+        #print("transcription in db: " + head_transcr + ", compound transcr: " + entry.transcript)
         return '', ''
 
     else:
@@ -100,6 +110,8 @@ def lookup_compound_components(word):
 
     if len(mod) == 0 and len(longest_valid_head) > 0:
         mod = word[:word.index(longest_valid_head)]
+        if not contains_vowel(mod):
+            mod = ''
 
     return mod, longest_valid_head
 

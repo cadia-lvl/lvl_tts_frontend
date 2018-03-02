@@ -19,6 +19,11 @@ class TestSyllabification(unittest.TestCase):
 
 
     def test_single_syllab(self):
+        comp_tree = tree_builder.build_compound_tree(entry.PronDictEntry('afturhvarf', 'a f t Y r k v a r v'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+        self.assertEqual(['a f ', 't Y r ', 'k v a r v '], res_syllables)
 
         comp_tree = tree_builder.build_compound_tree(
             entry.PronDictEntry('strandríki', 's t r a n t r i c I'))
@@ -97,6 +102,14 @@ class TestSyllabification(unittest.TestCase):
         res_syllables = self.get_syllable_arr(syllables)
 
         self.assertEqual(['p_h a r_0 ', 'c I n ', 's O n ', 's a m ', 't 9 ', 'c I n '], res_syllables)
+
+        comp_tree = tree_builder.build_compound_tree(
+            entry.PronDictEntry('aftanákeyrslu', 'a f t a n au c ei r_0 s t l Y'))
+        syllables = []
+        syllabification.syllabify_tree(comp_tree, syllables)
+        res_syllables = self.get_syllable_arr(syllables)
+
+        self.assertEqual(['a f ', 't a ', 'n au ', 'c ei r_0 s t ', 'l Y '], res_syllables)
 
 
     def _get_test_dict1(self):

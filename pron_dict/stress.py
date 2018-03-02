@@ -55,7 +55,8 @@ def synchronize_stress(short_word, long_word):
     for i, elem in enumerate(short_word.syllables):
         if i >= len(long_word.syllables) or i >= len(short_word.syllables):
             print('i: ' + str(i) + ' long: ' + str(long_word.syllables) + ' short: ' + str(short_word.syllables))
-        long_word.syllables[i].stress = short_word.syllables[i].stress
+        else:
+            long_word.syllables[i].stress = short_word.syllables[i].stress
 
 
 def should_add_primary_stress(current_word, modifier):

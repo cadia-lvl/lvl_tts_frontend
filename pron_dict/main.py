@@ -109,11 +109,14 @@ def main():
 
     tree_dict = create_tree_list(pron_dict)
 
-    syllabified = syllabification.syllabify_dict(tree_dict)
+    syllabified = syllabification.syllabify_tree_dict(tree_dict)
     syllab_with_stress = stress.set_stress(syllabified)
     #print('MNCL')
     #for entry in syllab_with_stress:
     #    print(entry.cmu_format())
+
+    for entry in syllab_with_stress:
+        print(entry.syllable_format())
 
 
 if __name__ == '__main__':

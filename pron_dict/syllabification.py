@@ -150,10 +150,11 @@ def syllabify_tree(entry_tree, syllables):
 def syllabify_tree_dict(tree_dict):
 
     syllabified = []
-    for entry in tree_dict:
-        syllabify_tree(entry)
-
-        syllabified.append(entry)
+    for t in tree_dict:
+        syllables = []
+        syllabify_tree(t, syllables)
+        t.elem.syllables = syllables
+        syllabified.append(t.elem)
 
     return syllabified
 
