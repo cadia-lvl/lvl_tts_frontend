@@ -3,15 +3,15 @@
 import sys
 import sqlite3
 
-MOD = 'modifier'
-BASE = 'base'
 
-DATABASE = '/Users/anna/PycharmProjects/tts/dictionary.db'
+DATABASE = '<path/to/database.db>'
 
 SQL_CREATE = 'CREATE TABLE IF NOT EXISTS frob(id INTEGER PRIMARY KEY, word TEXT, ' \
                      'transcript TEXT) '
 
 SQL_INSERT = 'INSERT OR IGNORE INTO frob(word, transcript) VALUES(?, ?)'
+
+SQL_SELECT_TRANSCR = 'SELECT * FROM frob'
 
 
 def create_connection(db_file):
@@ -31,6 +31,17 @@ def populate_database(dict_list):
         db.execute(SQL_INSERT, (entry[0], entry[1]))
 
     db.commit()
+
+
+def get_transcriptions_map():
+    conn = create_connection(DATABASE)
+    result = conn.execute(SQL_SELECT_TRANSCR)
+    transcriptions = result.fetchall()
+    transcr_dict = {}
+    for transcr in transcriptions:
+        transcr_dict[transcr[1]] = transcr[2]
+
+    return transcr_dict
 
 
 def main():
