@@ -13,21 +13,22 @@ whenever possible, a syllable has a 'need' for an onset consonant. This contradi
 'between-the-lines' word division rules saying that a word should be divided between lines
 such that the next line starts with a vowel: 'hes.tur' vs. 'hest.ur'.
 
-The following consonant combinations always build an onset together (i.e. the second one should not be the onset
-for the next syllable):
+The following consonant combinations always build an onset together:
 
     s, p, t, k + v, j, r    (sv, sj, sr, pv, pj, pr, etc.)
-    br
     fr
 
-# input: transcribed and aligned word, example: p r I c Y k v E r v I (bryggjuhverfi)
-# output: syllabified word: prI-cY-kvEr-vI (bry-ggju-hver-fi)
+# input: transcribed and aligned word, example: a v p r I G D I (afbrigði)
+# output: syllabified word: af.prIG.DI (af.brig.ði)
 
 # algorithm:
-# 1) symbols upto the second vowel build the first syllable: 'prIc'
-# 2) the remaining string is divided into syllables each starting with a vowel: 'prIc-Ykv-Erv-I'
-# 3) identify cons cluster: 'prIc-Y(kv)-Erv-I'
-# 4) move consonants to onset: 'prI-cY-kvEr-vI'
+# 1) symbols upto the second vowel build the first syllable: 'afpr'
+# 2) the remaining string is divided into syllables each starting with a vowel: 'afpr.IGD.I'
+# 3) identify cons cluster: 'af(pr).IGD.I'
+# 4) move consonants to onset (cons clusters and single consonants): 'af.prIG.DI'
+
+This algorithm normally gives correct results for simple words, but can produce errors when applied to compounds.
+Thus it is important to perform compound analysis before applying the core syllabification algorithm.
 
 """
 
@@ -44,27 +45,6 @@ VOWELS = ['a', 'a:', 'O', 'O:', 'u', 'u:', '9', '9:', 'Y', 'Y:', 'E', 'E:', 'I',
 # valid ('sr', 'pv', 'fv')
 CONS_CLUSTERS = ['s v', 's j', 'p j', 'p r', 't v', 't j', 't r', 'k v', 'k j', 'k r',
                  'p_h j', 'p_h r', 't_h v', 't_h j', 't_h r', 'k_h v', 'k_h j', 'k_h r', 'f r', 'f j']
-
-
-
-def divide_syllable(syllable):
-    transcr_arr = syllable.content.split()
-    syllables = syllabify_on_nucleus(transcr_arr)
-    if syllable.fixed_start:
-        syllables[0].fixed_start = True
-    if syllable.fixed_end:
-        syllables[len(syllables) - 1].fixed_end = True
-
-    return syllables
-
-
-def syllabify_compound(entry):
-
-    new_syllables = []
-    for syll in entry.syllables:
-        new_syllables = new_syllables + divide_syllable(syll)
-
-    return new_syllables
 
 
 def syllabify_on_nucleus(transcription_arr):
@@ -112,12 +92,12 @@ def syllabify_final(entry):
         # syllable after the first syllable starts with a vowel - look for consonant onset in previous syllable
         # and move the consonant / consonant cluster from the previous to the current syllable
         if ind > 0 and syll.content[0] in VOWELS:
-            if prev_syll.cons_cluster and not prev_syll.fixed_end:
+            if prev_syll.cons_cluster:
                 # copy cons_cluster to next syllable
                 syll.append_before(prev_syll.cons_cluster)
                 prev_syll.remove_cluster()
                 entry.update_syllables(ind, prev_syll, syll)
-            elif prev_syll.last_phones() not in VOWELS and not prev_syll.fixed_end:
+            elif prev_syll.last_phones() not in VOWELS:
                 # handle 'jE' (=é) as one vowel
                 if prev_syll.endswith('j') and syll.startswith('E'):
                     phone = prev_syll.last_phones(1)
@@ -138,6 +118,14 @@ def syllabify_entry(entry):
 
 
 def syllabify_tree(entry_tree, syllables):
+    """
+    Recursively call syllabification on each element of entry_tree.
+    Add up the syllables of the leaf nodes to build the syllable structure of the root element.
+    :param entry_tree: a binary tree of a compound structure, the tree might not have any leaves,
+    i.e. is not necessarily a compound
+    :param syllables: an array to add up the leaf syllables of the tree
+    :return:
+    """
     if not entry_tree.left:
         syllabify_entry(entry_tree.elem)
         syllables += entry_tree.elem.syllables
@@ -148,23 +136,18 @@ def syllabify_tree(entry_tree, syllables):
 
 
 def syllabify_tree_dict(tree_dict):
-
+    """
+    Syllabifies each entry in tree_dict
+    :param tree_dict: a list of compoundTrees to syllabify
+    :return: a list of syllabified PronDictEntries. Note that the returned list does NOT contain tree elements any more,
+    but simple PronDictEntries.
+    """
     syllabified = []
     for t in tree_dict:
         syllables = []
         syllabify_tree(t, syllables)
         t.elem.syllables = syllables
         syllabified.append(t.elem)
-
-    return syllabified
-
-
-def syllabify_dict(pron_dict):
-
-    syllabified = []
-    for entry in pron_dict:
-        syllabify_entry(entry)
-        syllabified.append(entry)
 
     return syllabified
 

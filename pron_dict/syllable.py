@@ -14,8 +14,6 @@ class Syllable:
         self.has_nucleus = False
         self.cons_cluster = None
         self.stress = 0
-        self.fixed_start = False
-        self.fixed_end = False
 
     def __str__(self):
         return self.content
@@ -24,14 +22,9 @@ class Syllable:
         return self.content
 
     def append(self, phone_str):
-        if self.fixed_end:
-            raise AttributeError(self.content + ' has a fixed end and cannot have content appended!')
-
         self.content += phone_str + ' '
 
     def append_before(self, phone_str):
-        if self.fixed_start:
-            raise AttributeError(self.content + ' has a fixed start and cannot have content appended before!')
         self.content = phone_str + ' ' + self.content
 
     def last_phones(self, number=1):
@@ -72,10 +65,4 @@ class Syllable:
             return -1
 
     def remove_cluster(self):
-        cluster_index = self.index_of_cluster()
-        if cluster_index == 0 and self.fixed_start:
-            raise AttributeError(self.content + ' has a fixed start and cannot have content revmoved!')
-        elif cluster_index > 0 and self.fixed_end:
-            raise AttributeError(self.content + ' has a fixed end and cannot have content removed!')
-
         self.content = self.content[:self.index_of_cluster()]

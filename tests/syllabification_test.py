@@ -5,7 +5,6 @@ import unittest
 from pron_dict import entry
 from pron_dict import syllabification
 from pron_dict import tree_builder
-from pron_dict import stress
 
 
 class TestSyllabification(unittest.TestCase):

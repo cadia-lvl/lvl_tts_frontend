@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import compounds
-import tree
+from dict_database import comp_dict_db
+from dict_database import pron_dict_db
 import entry
 
 
 VOWELS = ['a', 'á', 'e', 'é', 'i', 'í', 'o', 'ó', 'u', 'ú', 'y', 'ý', 'ö']
-MODIFIER_MAP = compounds.get_modifier_map()
-HEAD_MAP = compounds.get_head_map()
-TRANSCR_MAP = compounds.get_transcriptions_map()
+MODIFIER_MAP = comp_dict_db.get_modifier_map()
+HEAD_MAP = comp_dict_db.get_head_map()
+TRANSCR_MAP = pron_dict_db.get_transcriptions_map()
 MIN_COMP_LEN = 4
 MIN_INDEX = 2       # the position from which to start searching for a head word
 
 
-def contains_vowel(word):
+class CompoundTree:
+    def __init__(self, pron_dict_entry):
+        self.elem = pron_dict_entry
+        self.left = None
+        self.right = None
 
+    def preorder(self):
+        if not self.left:
+            print(self.elem)
+        if self.left:
+            self.left.preorder()
+        if self.right:
+            self.right.preorder()
+
+
+def contains_vowel(word):
     for c in word:
         if c in VOWELS:
             return True
@@ -52,22 +66,23 @@ def compare_transcripts(comp_transcript, head_transcript):
     return comp_ind + 1 # make up for the last iteration where head_ind went below 0
 
 
-
-def extract_transcription(entry, comp_mod, comp_head):
+def extract_transcription(entry, comp_head):
     """
-    - find index of comp_head
-    - find mapping phone
-    - search for phone index in phone string (note that phones are space separated!
-    - create two syllables: one with fixed end (mod) and one with fixed start (head)
-    :param entry:
-    :param comp_head:
+    Get the transcript of comp_head from the pron. dictionary and try to match it with the transcript of
+    the whole entry. We are somewhat flexible here: length symbol, voicelessness or postaspiration do not
+    cause the matching to fail (a: == a, r_0 == r, t_h == t), since transcriptions might not always match 100%.
+
+    Other variations could be added, like 'r t n' == 't n' like in barn: 'b a t n' vs. 'b a r t n', but we are
+    not there yet.
+
+    :param entry: PronDictEntry of the compound being analysed
+    :param comp_head: the head of the compound as string
     :return:
     """
 
     head_transcr = TRANSCR_MAP[comp_head] if comp_head in TRANSCR_MAP else 'NO_TRANSCRIPT'
     head_syllable_index = entry.transcript.rfind(head_transcr)
-    # words with long vowels might not be transcribed as containing a long vowel in the compound.
-    # l E: G Y vs. s k r 9Y: t l E G Y
+
     if head_syllable_index <= 0:
        head_syllable_index = compare_transcripts(entry.transcript, head_transcr)
     if head_syllable_index <= 0:
@@ -76,7 +91,6 @@ def extract_transcription(entry, comp_mod, comp_head):
         return '', ''
 
     else:
-
         modifier_transcr = entry.transcript[0:head_syllable_index]
         head_transcr = entry.transcript[head_syllable_index:]
         return modifier_transcr, head_transcr
@@ -88,7 +102,6 @@ def lookup_compound_components(word):
     the longest possible head word shows the correct division, but if a modifier is found for a shorter
     head word, this one is chosen. If no modifier is found but a valid head word, the longest valid head word is
     returned, with the assumption that the modifier will also be valid, even if it is not in the dictionary.
-
 
     :param word:
     :return: extracted modifier and head if found, returns empty strings if no components are found
@@ -109,7 +122,9 @@ def lookup_compound_components(word):
         n += 1
 
     if len(mod) == 0 and len(longest_valid_head) > 0:
+        # assume we have a valid modifier anyway
         mod = word[:word.index(longest_valid_head)]
+        # but only as long as it contains a vowel!
         if not contains_vowel(mod):
             mod = ''
 
@@ -117,16 +132,22 @@ def lookup_compound_components(word):
 
 
 def extract_compound_components(comp_tree):
+    """
+    As long as compound components can be extracted, extract compound components and their transcripts recursively.
 
+    :param comp_tree: a tree containing one root element. If compound components are found, they are added
+    as children of the root.
+    :return:
+    """
     mod, head = lookup_compound_components(comp_tree.elem.word)
     if len(mod) > 0 and len(head) > 0:
-        mod_transcr, head_transcr = extract_transcription(comp_tree.elem, mod, head)
+        mod_transcr, head_transcr = extract_transcription(comp_tree.elem, head)
         if len(mod_transcr) > 0 and len(head_transcr) > 0:
             left_elem = entry.PronDictEntry(mod, mod_transcr)
-            left_tree = tree.CompoundTree(left_elem)
+            left_tree = CompoundTree(left_elem)
             comp_tree.left = left_tree
             right_elem = entry.PronDictEntry(head, head_transcr)
-            right_tree = tree.CompoundTree(right_elem)
+            right_tree = CompoundTree(right_elem)
             comp_tree.right = right_tree
             extract_compound_components(left_tree)
             extract_compound_components(right_tree)
@@ -134,11 +155,11 @@ def extract_compound_components(comp_tree):
 
 def build_compound_tree(entry):
     """
-    :param entry:
+    :param entry: a PronDictEntry
     :return: a binary tree based on compound division
     """
 
-    comp_tree = tree.CompoundTree(entry)
+    comp_tree = CompoundTree(entry)
     extract_compound_components(comp_tree)
     return comp_tree
 

@@ -34,8 +34,7 @@ PRIO_3 = 'j'
 PRIO_4 = 'a'
 
 ###
-DATABASE = '<path-to-database>'
-DATABASE = '/Users/anna/Data/BIN/SHsnid.csv/BIN_DB.db'
+DATABASE = '<path-to-BIN-database>'
 
 SQL_SELECT = 'SELECT field3 FROM SHsnid WHERE field5 = ?'
 

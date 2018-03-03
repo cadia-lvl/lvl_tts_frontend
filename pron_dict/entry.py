@@ -21,10 +21,6 @@ class PronDictEntry:
         self.transcription_arr = self.transcript.split()
         self.gpos = 'nil'  # guessed part-of-speech
         self.syllables = []
-        self.head = ''
-        self.modifier = ''
-        self.full_decomp = ''
-        self.is_compound = False
 
     def __str__(self):
         return self.word + '\t' + self.gpos + '\t' + self.transcript + '\t' + str(self.syllables)
@@ -46,7 +42,6 @@ class PronDictEntry:
     def cmu_format(self):
         return '("' + self.word + '" ' + self.gpos + ' ' + self.cmu_format_syllables() + ')'
 
-
     def dot_format_syllables(self):
         sylls = ''
         for syll in self.syllables:
@@ -56,25 +51,3 @@ class PronDictEntry:
 
     def syllable_format(self):
         return self.word + ' - ' + self.dot_format_syllables()
-
-
-class LexicalEntry:
-
-    def __init__(self, word='', transcr=''):
-        self.word = word
-        self.transcript = transcr
-
-    def __str__(self):
-        return self.word + '\t' + self.transcript
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class Compound:
-
-    def __init__(self, comp=None, modif=None, head=None):
-        self.comp = comp
-        self.modifier = modif
-        self.head = head
-
