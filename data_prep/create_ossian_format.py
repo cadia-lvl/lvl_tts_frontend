@@ -7,14 +7,13 @@ Creates Ossian format of text data for TTS, from Festival format.
 
 Festival format:
 one text file, content:
-
-( is_is-vmst_91_1-2011-11-14T10:03:40.609633 "Skiptar skoðanir um kvóta." )
+( ivona_set1_2113 "hér á landi er erfitt að komast í læri í myndahúðflúr þar sem að fáir stunda þessa grein og markaðurinn lítill hér á landi." )
 
 Ossian format:
 one file for each utterance, named after the id:
 
-Filename:   is_is-vmst_91_1-2011-11-14T10:03:40.609633.txt
-Content:    Skiptar skoðanir um kvóta.
+Filename:   ivona_set1_2113.txt
+Content:    hér á landi er erfitt að komast í læri í myndahúðflúr þar sem að fáir stunda þessa grein og markaðurinn lítill hér á landi.
 
 
 """
@@ -24,7 +23,7 @@ import sys
 
 output_dir = 'txt'
 
-festival_file = open(sys.argv[1])
+festival_file = open(sys.argv[1]) # e.g. [..]/ivona/ivona_set1.txt
 os.mkdir(output_dir)
 
 for line in festival_file.readlines():
