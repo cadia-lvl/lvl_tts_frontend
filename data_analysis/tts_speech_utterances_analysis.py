@@ -6,7 +6,7 @@ Analyse a summary textfile from TTS speech recordings
 
 Google is format (e.g. line_index_m/f.txt):
 
-speaker_id_utt_id   email   some-id(sha5?)  utterance
+speaker_id_utt_id   email   some-id  utterance
 
 Google ban format (e.g. bangla_line_index.tsv):
 
