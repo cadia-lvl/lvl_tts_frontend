@@ -12,7 +12,7 @@ Google ban format (e.g. bangla_line_index.tsv):
 
 speaker_id_utt_id   utterance
 
-Ivona format (e.g. ivona_demo2000.txt):
+Utterances only fomat (no speaker statistics):
 
 utterance
 
@@ -72,7 +72,7 @@ for line in in_file.readlines():
         # speaker data
         speaker_id = utt_id[:9]
         speaker_dict[speaker_id] = speaker_dict[speaker_id] + 1 if speaker_id in speaker_dict else 1
-    # ivona format
+    # utterance only format
     else:
         utt = line.strip()
 
