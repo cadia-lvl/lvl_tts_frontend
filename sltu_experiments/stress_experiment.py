@@ -7,32 +7,6 @@ Test the quality of automatic stress labeling.
 
 """
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-The pron_dict module processes an ASR pronunciation dictionary, containing entries of the form 'word     transcription',
-computes the necessary additional information for TTS (part-of-speech, syllabification and stress marks) and
-outputs the results in the CMU format or plain syllable format.
-
-Example:
-    Input entry:
-
-    adolfsdóttir     a: t O l f s t ou h t I r
-
-    CMU output entry:
-
-    ("adolfsdóttir" n (((a:) 1) ((t O l f s) 3) ((t ou h) 1) ((t I r) 3))))
-
-    Plain syllable output entry:
-
-    adolfsdóttir - a:.t O l f s.t ou h.t I r
-
-
-"""
-
-__license__ = 'Apache 2.0 (see: LICENSE)'
-
 import re
 import syllabification
 import stress
