@@ -36,9 +36,9 @@ import syllable
 
 
 # each syllable has a vowel as a nucleus. 'e' and 'o' aren't actually in the inventory, but we need
-# to be able to identify 'ei' and 'ou' from the first character only
+# to be able to identify 'ei' and 'ou' from the first character only. 'P' is the replacement for '9' in Ossian format.
 VOWELS = ['a', 'a:', 'O', 'O:', 'u', 'u:', '9', '9:', 'Y', 'Y:', 'E', 'E:', 'I', 'I:', 'i', 'i:',
-          'ai', 'ai:', 'au', 'au:', 'ou', 'ou:', '9Y', '9Y:', 'Oi', 'Yi', 'ei', 'ei:', 'e', 'o']
+          'ai', 'ai:', 'au', 'au:', 'ou', 'ou:', '9Y', '9Y:', 'Oi', 'Yi', 'ei', 'ei:', 'e', 'o', 'P', 'P:', 'PY', 'PY:']
 
 # these consonant clusters should not be divided between two syllables
 # the general rule is: p, t, k, s, b, d, g, f + v, j, r. But not all of these combinations are
