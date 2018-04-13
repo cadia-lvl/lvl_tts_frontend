@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from syllabification import VOWELS
 
 class PronDictEntry:
     """
@@ -51,3 +52,20 @@ class PronDictEntry:
 
     def syllable_format(self):
         return self.word + ' - ' + self.dot_format_syllables()
+
+    def stress_format(self):
+        sylls = ''
+        for syll in self.syllables:
+            stressed_phones = []
+            phones = syll.content.strip().split()
+            for p in phones:
+                if p in VOWELS:
+                    p = p + str(syll.stress)
+                stressed_phones.append(p)
+
+            sylls += ' '.join(stressed_phones) + ' '
+
+        return sylls.strip()
+
+    def simple_stress_format(self):
+        return self.stress_format()
