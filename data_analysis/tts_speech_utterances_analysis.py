@@ -39,6 +39,7 @@ out_dir = sys.argv[3]
 speaker_dict = {}
 utterance_dict = {}
 token_dict = {}
+unigram_dict = {}
 bigram_dict = {}
 quingram_dict = {}
 non_normalized = []
@@ -101,13 +102,18 @@ for line in in_file.readlines():
 
     # n-gram analysis (character based)
     chrs = [c for c in utt_lower]
+
+    unigrams = ngrams(chrs, 1)
+    for c in unigrams:
+        unigram_dict[c] = unigram_dict[c] + 1 if c in unigram_dict else 1
+
     bigrams = ngrams(chrs, 2)
     for bigram in bigrams:
         bigram_dict[bigram] = bigram_dict[bigram] + 1 if bigram in bigram_dict else 1
 
     quingrams = ngrams(chrs, 5)
     for quingram in quingrams:
-        quingram_dict[bigram] = quingram_dict[bigram] + 1 if quingram in quingram_dict else 1
+        quingram_dict[quingram] = quingram_dict[quingram] + 1 if quingram in quingram_dict else 1
 
 
 # print the results
@@ -141,6 +147,7 @@ if len(speaker_dict) > 0:
 
 write_dict(out_dir + '/utterance_stats.txt', utterance_dict)
 write_dict(out_dir + '/token_stats.txt', token_dict)
+write_dict(out_dir + '/unigram_stats.txt', unigram_dict)
 write_dict(out_dir + '/bigram_stats.txt', bigram_dict)
 write_dict(out_dir + '/quingram_stats.txt', quingram_dict)
 

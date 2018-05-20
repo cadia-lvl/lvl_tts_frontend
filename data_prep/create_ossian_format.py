@@ -21,15 +21,21 @@ Content:    hér á landi er erfitt að komast í læri í myndahúðflúr þar 
 import os
 import sys
 
-output_dir = 'txt'
+output_dir = 'ivona_txt'
 
 festival_file = open(sys.argv[1]) # e.g. [..]/ivona/ivona_set1.txt
-os.mkdir(output_dir)
+#os.mkdir(output_dir)
 
 for line in festival_file.readlines():
     quotes_ind = line.index('"')
-    utt_id = line[2:quotes_ind].strip()
-    text = line[quotes_ind + 1:line.index('"', quotes_ind + 1)]
+    if quotes_ind > 20:
+        #missing starting quotes in utt
+        utt_id = line[2:17]
+        text = line[18: quotes_ind]
+
+    else:
+        utt_id = line[2:quotes_ind].strip()
+        text = line[quotes_ind + 1:line.index('"', quotes_ind + 1)]
 
     with open(output_dir + '/' + utt_id + '.txt', 'w') as f:
         f.write(text + '\n')
