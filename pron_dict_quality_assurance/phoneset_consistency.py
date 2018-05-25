@@ -192,7 +192,7 @@ def main():
         corr_transcr, repl = correct_transcript(corr_transcr)
 
         if repl == UNKNOWN:
-            print(line)
+            #print(line.strip())
             continue
 
         elif corr_transcr != transcr.strip():

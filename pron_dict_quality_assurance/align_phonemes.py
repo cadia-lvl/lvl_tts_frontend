@@ -107,7 +107,7 @@ class Aligner(object):
                 self.phoneme_stats[partial_pstring[0:l]] += 1
                 return l
         raise ValueError('Invalid symbol found in "{}"'
-                         .format(phoneme_string))
+                         .format(phoneme_string + '\t' + partial_pstring[0:l]))
 
     def align(self, phoneme_string):
         phoneme_string = self.clean(phoneme_string)
