@@ -130,10 +130,11 @@ def main():
 
     args = parser.parse_args()
 
-    #find_postaspir(args.input)
-    #find_missing_postaspir(args.input)
-    #find_beginning_postaspir(args.input)
-    ensure_postaspir(args.input)
+    dict_list = args.input.readlines()
+    #find_postaspir(dict_list)
+    find_missing_postaspir(dict_list)
+    find_beginning_postaspir(dict_list)
+    ensure_postaspir(dict_list)
 
 
 if __name__ == '__main__':

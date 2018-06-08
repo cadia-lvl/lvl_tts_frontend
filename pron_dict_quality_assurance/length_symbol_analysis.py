@@ -5,51 +5,72 @@
 
 import sys
 
-VOWELS = ['a', 'a:', 'ai', 'au', 'au:', 'ei', 'ei:', 'i', 'i:', 'ou', 'ou:', 'u', 'u:', '9', '9:' ,'9Y', '9Y:',
+XSAMPA_VOWELS = ['a', 'a:', 'ai', 'au', 'au:', 'ei', 'ei:', 'i', 'i:', 'ou', 'ou:', 'u', 'u:', '9', '9:' ,'9Y', '9Y:',
           'O', 'Oi', 'O:', 'E', 'E:', 'I', 'I:', 'Y', 'Y:' 'Yi']
 
-LENGTH_SYMBOL = ':'
+IPA_VOWELS = ['a', 'aː', 'ai', 'au', 'auː', 'ei', 'eiː', 'i', 'iː', 'ou', 'ouː', 'u', 'uː', 'œ', 'œː' ,'œy', 'œyː',
+          'ɔ', 'ɔi', 'ɔː', 'ɛ', 'ɛː', 'ɪ', 'ɪː', 'ʏ', 'ʏː' 'ʏi']
 
-pron_dict = open(sys.argv[1]).readlines()
+XSAMPA_LENGTH_SYMBOL = ':'
+IPA_LENGTH_SYMBOL = 'ː'
 
-length_symbol_transcripts = []
 
-# analyse:
-for line in pron_dict:
-    word, transcr = line.strip().split('\t')
-    t_arr = transcr.split()
+def remove_all_length_symbols(phon_arr, vowel_set, length_symbol):
+
+    for ind, phon in enumerate(phon_arr):
+        if phon in vowel_set and length_symbol in phon:
+            phon = phon.replace(length_symbol, '')
+            phon_arr[ind] = phon
+
+    new_transcr = ' '.join(phon_arr)
+
+    return new_transcr
+
+
+def find_length_symbol_after_1st(pron_dict, vowel_set, length_symbol):
+    length_symbol_transcripts = []
+    for line in pron_dict:
+        word, transcr = line.strip().split('\t')
+        t_arr = transcr.split()
+        vowel_seen = False
+        for phon in t_arr:
+            if phon in vowel_set:
+                if vowel_seen and length_symbol in phon:
+                    length_symbol_transcripts.append(line.strip())
+                    break
+                else:
+                    vowel_seen = True
+
+    return length_symbol_transcripts
+
+
+def remove_late_length_symbols(phon_arr, vowel_set, length_symbol):
     vowel_seen = False
-    for phon in t_arr:
-        if phon in VOWELS:
-            if vowel_seen and LENGTH_SYMBOL in phon:
-                length_symbol_transcripts.append(line.strip())
-
-                break
+    for ind, phon in enumerate(phon_arr):
+        if phon in vowel_set:
+            if vowel_seen and length_symbol in phon:
+                phon = phon.replace(length_symbol, '')
+                phon_arr[ind] = phon
             else:
                 vowel_seen = True
 
-#for line in length_symbol_transcripts:
-#    print(line)
+    new_transcr = ' '.join(phon_arr)
+    return new_transcr
 
 
-# clean:
+def main():
 
-results = []
-for line in pron_dict:
-    word, transcr = line.strip().split('\t')
-    t_arr = transcr.split()
-    vowel_seen = False
-    for ind, phon in enumerate(t_arr):
-        if phon in VOWELS:
-            if vowel_seen and LENGTH_SYMBOL in phon:
-                phon = phon.replace(':', '')
-                t_arr[ind] = phon
-            else:
-                vowel_seen = True
+    pron_dict = open(sys.argv[1]).readlines()
+    results = []
+    for line in pron_dict:
+        word, transcr = line.strip().split('\t')
+        t_arr = transcr.split()
 
-    new_transcr = ' '.join(t_arr)
+        results.append(remove_all_length_symbols(t_arr, IPA_VOWELS, IPA_LENGTH_SYMBOL))
 
-    results.append(word + '\t' + new_transcr)
+    for line in results:
+        print(line)
 
-for line in results:
-    print(line)
+
+if __name__ == '__main__':
+    main()

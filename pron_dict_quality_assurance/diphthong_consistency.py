@@ -67,24 +67,37 @@ def main():
     frob_file = sys.argv[1]
     correct = []
     error = []
+    new_dict = []
+
     for line in open(frob_file).readlines():
+        error_in_entry = False
         word, transcr = line.strip().split('\t')
         if word in exception_list:
+            new_dict.append(line.strip())
             continue
         for pattern in regex_dict.keys():
             if pattern.search(word):
                 if re.search(regex_dict[pattern], transcr):
                     correct.append(line.strip())
+
                 else:
                     error.append(line.strip())
+                    error_in_entry = True
+
+        if not error_in_entry:
+            new_dict.append(line.strip())
+
 
     #print("ERRORS: " + str(len(error)))
-    for line in error:
-        print(line)
+    #for line in error:
+    #    print(line.strip())
 
     #print("==============CORRECT=============== " + str(len(correct)))
     #for line in correct:
     #    print("correct " + line)
+
+    for line in new_dict:
+        print(line)
 
 
 if __name__ == '__main__':

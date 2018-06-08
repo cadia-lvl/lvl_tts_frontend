@@ -22,13 +22,13 @@ word_list_file = sys.argv[2]
 word_list = []
 
 for line in open(word_list_file).readlines():
-    word_list.append(line.strip())
+    word_list.append(line.strip().lower())
 
 result_dictionary = []
 
 for line in open(frob_file):
     word, transcr = line.strip().split('\t')
-    if word not in word_list:
+    if word.lower() not in word_list:
         result_dictionary.append(line)
 
 with open(frob_file + '_filtered.txt', 'w') as f:

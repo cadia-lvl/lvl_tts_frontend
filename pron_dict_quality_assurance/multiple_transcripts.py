@@ -8,6 +8,7 @@ Takes a pronunciation dictionary as an input.
 
 """
 import sys
+import re
 
 KEEP_BOTH = 'KEEP_BOTH'
 NO_CHOICE = 'NO_CHOICE'
@@ -22,23 +23,23 @@ def choose_transcript(result_arr, transcr1, transcr2, word):
         return transcr1
     if ('x', 'k') in result_arr:
         return transcr2
-    if ('n̥', 'n') in result_arr or ('ŋ̊', 'ŋ') in result_arr or ('m̥', 'm') in result_arr or ('r̥', 'r') in result_arr:
+    if ('n̥', 'n') in result_arr or ('ŋ̊', 'ŋ') in result_arr or ('ɲ̊', 'ɲ') in result_arr or ('m̥', 'm') in result_arr or ('r̥', 'r') in result_arr:
         return transcr1
-    if ('n','n̥') in result_arr or ('ŋ', 'ŋ̊') in result_arr or ('m', 'm̥') in result_arr or ('r', 'r̥') in result_arr:
+    if ('n','n̥') in result_arr or ('ŋ', 'ŋ̊') in result_arr or ('ɲ', 'ɲ̊') in result_arr or ('m', 'm̥') in result_arr or ('r', 'r̥') in result_arr:
         return transcr2
     if ('l̥', 'l') in result_arr or ('t', '') in result_arr:
-        if 'll' in word:
+        if re.match('.+ll[aáeéiíoóuúyýöæ].*', word):
             return KEEP_BOTH
         else:
             return transcr1
     if ('l', 'l̥') in result_arr or ('', 't') in result_arr:
-        if 'll' in word:
+        if re.match('.+ll[aáeéiíoóuúyýöæ].*', word):
             return KEEP_BOTH
         else:
             return transcr2
-    if ('c', 'k') in result_arr or ('eiː', 'ei') in result_arr or ('h k', 'x') in result_arr or ('', 'k') in result_arr:
+    if ('c', 'k') in result_arr or ('h k', 'x') in result_arr or ('', 'k') in result_arr:
         return transcr1
-    if ('k', 'c') in result_arr or ('ei', 'eiː') in result_arr or ('x', 'h k') in result_arr or ('k', '') in result_arr:
+    if ('k', 'c') in result_arr or ('x', 'h k') in result_arr or ('k', '') in result_arr:
         return transcr2
 
     else:
@@ -157,7 +158,7 @@ def compare_transcripts(transcr1, transcr2):
     if len(arr1) > last_tup_1 + 1:
         ins = arr1[last_tup_1 + 1:]
         ins_tup = (' '.join(ins), '')
-        #print(' '.join(arr1) + ' -- ' + ' '.join(arr2))
+        print(' '.join(arr1) + ' -- ' + ' '.join(arr2))
         result.append(ins_tup)
 
     return result
@@ -264,7 +265,7 @@ def main():
     out = open(multiple_transcripts_outfile, 'w')
     out.writelines(lines2write)
 
-    out = open('filtered_dict.txt', 'w')
+    out = open('dict_step_5.txt', 'w')
     out.writelines(filtered_dictionary)
 
     out = open('no_choice.txt', 'w')
