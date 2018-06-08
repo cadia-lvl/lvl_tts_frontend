@@ -58,8 +58,8 @@ Collect entries containing '0', '_'
 
 import sys
 
-
 non_valid_symbols = {'b': 'p',
+                     'd': 't',
                     'ö': 'œ',
                     '\u014b\u0325': '\u014b\u030a',  #'ŋ̥': 'ŋ̊ ',
                     'k̥': 'k',
@@ -79,7 +79,8 @@ non_valid_symbols = {'b': 'p',
                     'U': 'ʏ',
                     'S': 's',
                     'V': 'v',
-                    'L': 'l'
+                    'L': 'l',
+                     'J': 'ɲ'
                      }
 
 diphthongs_w_length = {'ʏiːjɪ': 'ʏijɪ',
@@ -196,15 +197,15 @@ def main():
             continue
 
         elif corr_transcr != transcr.strip():
-            corrected.append(transcr.strip() + '\t' + corr_transcr)
+            corrected.append(word + '\t' + transcr.strip() + '\t' + corr_transcr)
             dict_out.append(word + '\t' + corr_transcr)
 
         else:
             dict_out.append(line.strip())
 
-    write_list('context_dep_errors_2.txt', corrected_context_dep)
-    write_list('replaced_errors_2.txt', corrected)
-    write_list('unknown_2.txt', unknown)
+    write_list('context_dep_errors.txt', corrected_context_dep)
+    write_list('replaced_errors.txt', corrected)
+    write_list('unknown.txt', unknown)
     write_list(frob_file + '_consistent.txt', dict_out)
 
 
