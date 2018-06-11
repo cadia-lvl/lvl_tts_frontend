@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
 from dict_database import comp_dict_db
 from dict_database import pron_dict_db
+from pron_dict import entry
 
 
 VOWELS = ['a', 'á', 'e', 'é', 'i', 'í', 'o', 'ó', 'u', 'ú', 'y', 'ý', 'ö']
@@ -36,7 +38,7 @@ def contains_vowel(word):
 
     return False
 
-def lookup_compound_components(word):
+def lookup_compound_components(word, p_dict={}):
     """
     Divides the word based on if its components are found in the compound database. The rule of thumb is that
     the longest possible head word shows the correct division, but if a modifier is found for a shorter
@@ -47,6 +49,9 @@ def lookup_compound_components(word):
     :return: extracted modifier and head if found, returns empty strings if no components are found
     """
     if len(word) <= MIN_COMP_LEN:
+        return '', ''
+
+    if word == 'félag' or word == 'félaga' or word == 'félags' or word == 'félagsins' or word == 'félögum':
         return '', ''
 
     n = MIN_INDEX
@@ -61,17 +66,24 @@ def lookup_compound_components(word):
                 longest_valid_head = head
         n += 1
 
+    # if commented out: only components from database will make it into the results
+    """
     if len(mod) == 0 and len(longest_valid_head) > 0:
         # assume we have a valid modifier anyway
         mod = word[:word.index(longest_valid_head)]
+        if mod in p_dict:
+            mod = 'frob_only_' + mod
         # but only as long as it contains a vowel!
-        if not contains_vowel(mod):
+        elif not contains_vowel(mod) or mod.startswith('guessed') or mod.startswith('frob_'):
             mod = ''
-
+        elif not mod.startswith('guessed') and not mod.startswith('frob_'):
+            mod = 'guessed_' + mod
+    """
     return mod, longest_valid_head
 
 
-def extract_compound_components(comp_tree):
+
+def extract_compound_components(comp_tree, p_dict):
     """
     As long as compound components can be extracted, extract compound components and their transcripts recursively.
 
@@ -79,7 +91,7 @@ def extract_compound_components(comp_tree):
     as children of the root.
     :return:
     """
-    mod, head = lookup_compound_components(comp_tree.elem)
+    mod, head = lookup_compound_components(comp_tree.elem, p_dict)
     if len(mod) > 0 and len(head) > 0:
         left_elem = mod
         left_tree = CompoundTree(left_elem)
@@ -87,16 +99,63 @@ def extract_compound_components(comp_tree):
         right_elem = head
         right_tree = CompoundTree(right_elem)
         comp_tree.right = right_tree
-        extract_compound_components(left_tree)
-        extract_compound_components(right_tree)
+        extract_compound_components(left_tree, p_dict)
+        extract_compound_components(right_tree, p_dict)
 
 
-def build_compound_tree(word):
+def build_compound_tree(word, p_dict={}):
     """
     :param entry: a PronDictEntry
     :return: a binary tree based on compound division
     """
 
     comp_tree = CompoundTree(word)
-    extract_compound_components(comp_tree)
+    extract_compound_components(comp_tree, p_dict)
     return comp_tree
+
+
+def get_compounds(p_dict):
+    for word in p_dict.keys():
+        tree = build_compound_tree(word, p_dict)
+        comp_elems = []
+        tree.preorder(comp_elems)
+        if len(comp_elems) > 1:
+            p_dict[word].compound_elements = comp_elems
+            for elem in comp_elems:
+                if elem in p_dict:
+                    p_dict[elem].frequency += 1
+
+    return p_dict
+
+
+def main():
+
+    frob_in = sys.argv[1]
+
+    pron_dict = {}
+
+    for line in open(frob_in).readlines():
+        word, transcr = line.strip().split('\t')
+        dict_entry = entry.PronDictEntry(word, transcr)
+        dict_entry.frequency = 1
+        pron_dict[word.lower()] = dict_entry
+
+    pron_dict = get_compounds(pron_dict)
+
+    with open('pron_dict_compounds.txt', 'w') as f:
+        for word in sorted(pron_dict, key=lambda x: pron_dict[x].frequency, reverse=True):
+            elem = pron_dict[word]
+            if elem.frequency > 1: #len(elem.compound_elements) > 1: #
+                f.write(word + '\t' + elem.transcript + '\t' + str(elem.compound_elements) + '\t' + str(elem.frequency))
+                f.write('\n')
+                """
+                for e in elem.compound_elements:
+                    if e.startswith('frob_only'):
+                        
+                        break
+                """
+
+
+if __name__ == '__main__':
+    main()
+
