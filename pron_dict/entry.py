@@ -20,9 +20,12 @@ class PronDictEntry:
         self.word = word
         self.transcript = transcription.strip()
         self.transcription_arr = self.transcript.split()
+        self.transcript_variants = set()
+        self.transcript_variants.add(self.transcript)
         self.gpos = 'nil'  # guessed part-of-speech
         self.syllables = []
         self.compound_elements = []
+        self.entailing_compounds = [] # compounds where this word is one part
         self.frequency = 0
 
     def __str__(self):
