@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import grapheme_phoneme_mapping
 from dict_database import comp_dict_db
 from dict_database import pron_dict_db
 from pron_dict import entry
+from grapheme_phoneme_mapping import G2P_align
 
 
 VOWELS = ['a', 'á', 'e', 'é', 'i', 'í', 'o', 'ó', 'u', 'ú', 'y', 'ý', 'ö']
@@ -29,6 +31,27 @@ class CompoundTree:
             self.left.preorder(elem_arr)
         if self.right:
             self.right.preorder(elem_arr)
+
+
+def get_elem_transcriptions(elem_list, p_entry, g2p_map):
+    elem_transcr_map = {}
+    aligned = grapheme_phoneme_mapping.align_g2p(p_entry.word, p_entry.transcript, g2p_map)
+    tuple_ind = 0
+    elem_ind = 0
+    for elem in elem_list:
+        transcr = []
+        for tuple in aligned[tuple_ind:]:
+            grapheme = tuple[0]
+            if elem[elem_ind: elem_ind + len(grapheme)] == grapheme:
+                transcr.append(tuple[1])
+                tuple_ind += 1
+                elem_ind += len(grapheme)
+            else:
+                break
+
+        elem_transcr_map[elem] = ' '.join(transcr)
+
+    return elem_transcr_map
 
 
 def contains_vowel(word):
@@ -114,39 +137,46 @@ def build_compound_tree(word, p_dict={}):
     return comp_tree
 
 
-def get_compounds(p_dict):
+def get_compounds(p_dict, g2p):
     for word in p_dict.keys():
         tree = build_compound_tree(word, p_dict)
         comp_elems = []
         tree.preorder(comp_elems)
         if len(comp_elems) > 1:
+            # align transcript using grapheme_phoneme_mapping of word and extract the transcript for each element
+            elem_dict = get_elem_transcriptions(comp_elems, p_dict[word], g2p.g2p_map)
             p_dict[word].compound_elements = comp_elems
             for elem in comp_elems:
                 if elem in p_dict:
                     p_dict[elem].frequency += 1
+                    p_dict[elem].transcript_variants.add(elem_dict[elem])
 
     return p_dict
 
 
 def main():
 
-    frob_in = sys.argv[1]
+    frob_in = open(sys.argv[1]).readlines()
 
     pron_dict = {}
 
-    for line in open(frob_in).readlines():
+    for line in frob_in:
         word, transcr = line.strip().split('\t')
         dict_entry = entry.PronDictEntry(word, transcr)
         dict_entry.frequency = 1
         pron_dict[word.lower()] = dict_entry
 
-    pron_dict = get_compounds(pron_dict)
+    g2p = G2P_align(frob_in, 1000)
+    g2p.extend_mapping(frob_in)
 
-    with open('pron_dict_compounds.txt', 'w') as f:
+    pron_dict = get_compounds(pron_dict, g2p)
+
+    with open('pron_dict_compounds_variants.txt', 'w') as f:
         for word in sorted(pron_dict, key=lambda x: pron_dict[x].frequency, reverse=True):
             elem = pron_dict[word]
             if elem.frequency > 1: #len(elem.compound_elements) > 1: #
-                f.write(word + '\t' + elem.transcript + '\t' + str(elem.compound_elements) + '\t' + str(elem.frequency))
+                f.write(word + '\t' + elem.transcript + '\t' + str(elem.compound_elements) +
+                        '\t' + str(elem.transcript_variants) + str(elem.frequency))
                 f.write('\n')
                 """
                 for e in elem.compound_elements:
