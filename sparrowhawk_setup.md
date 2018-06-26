@@ -1,4 +1,5 @@
-#Sparrowhawk set up
+Sparrowhawk set up
+==================
 
 Sparrowhawk is the open version of Google's Kestrel text normalization engine. It has several prerequisites, the following is the set up process followed from https://github.com/danijel3/SparrowhawkTest
 
@@ -8,7 +9,8 @@ Recommends creating a virtual environment:
 
     cd sparrowhawk
 
-##OpenFST
+OpenFST
+-------
   
 Get and install OpenFST - we will install all packages of relevant software in /usr/local:
 
@@ -20,7 +22,8 @@ Get and install OpenFST - we will install all packages of relevant software in /
     make
     make install
 
-##Thrax
+Thrax
+-----
 
 Get and install Thrax:
 
@@ -33,7 +36,8 @@ Get and install Thrax:
     make
     make install
 
-##RE2
+RE2
+---
 	
 Get and install RE2:
 
@@ -42,7 +46,8 @@ Get and install RE2:
     cd re2/
     make
 
-##Protobuf
+Protobuf
+--------
 	
 Get and install Protobuf:
 
@@ -91,7 +96,8 @@ Make check might show some errors, you should be able to continue anyway ...
     make install
 
 
-##Sparrowhawk
+Sparrowhawk
+------------
 
 And, finally, install Sparrowhawk:
 
@@ -107,7 +113,8 @@ The following is for Mac OSX, Linux users can probably just call ./configure dir
 
 If all the above went well, everything should be set up by now.
 
-#### Run Sparrowhawk
+Run Sparrowhawk
+----------------
 
 First, build the demo grammars:
 
