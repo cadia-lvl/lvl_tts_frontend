@@ -37,17 +37,24 @@ def get_elem_transcriptions(elem_list, p_entry, g2p_map):
     elem_transcr_map = {}
     aligned = grapheme_phoneme_mapping.align_g2p(p_entry.word, p_entry.transcript, g2p_map)
     tuple_ind = 0
-    elem_ind = 0
+
     for elem in elem_list:
         transcr = []
+
+        elem_ind = 0
         for tuple in aligned[tuple_ind:]:
             grapheme = tuple[0]
             if elem[elem_ind: elem_ind + len(grapheme)] == grapheme:
-                transcr.append(tuple[1])
+                if len(tuple[1].strip()) > 0:
+                    transcr.append(tuple[1].strip())
                 tuple_ind += 1
                 elem_ind += len(grapheme)
             else:
                 break
+
+        if len(transcr) == 0:
+            #print(str(elem_list) + ' ' + str(aligned))
+            return {}
 
         elem_transcr_map[elem] = ' '.join(transcr)
 
@@ -147,7 +154,7 @@ def get_compounds(p_dict, g2p):
             elem_dict = get_elem_transcriptions(comp_elems, p_dict[word], g2p.g2p_map)
             p_dict[word].compound_elements = comp_elems
             for elem in comp_elems:
-                if elem in p_dict:
+                if elem in p_dict and elem in elem_dict:
                     p_dict[elem].frequency += 1
                     p_dict[elem].transcript_variants.add(elem_dict[elem])
 
@@ -171,19 +178,24 @@ def main():
 
     pron_dict = get_compounds(pron_dict, g2p)
 
-    with open('pron_dict_compounds_variants.txt', 'w') as f:
+    with open('pron_dict_compounds_variants_0620.txt', 'w') as f:
         for word in sorted(pron_dict, key=lambda x: pron_dict[x].frequency, reverse=True):
             elem = pron_dict[word]
-            if elem.frequency > 1: #len(elem.compound_elements) > 1: #
+            """
+            if len(elem.compound_elements) == 0:
+                f.write(word + '\t' + elem.transcript)
+                f.write('\n')
+
+            """
+            elem.simplify_compound_variants()
+            if len(elem.transcript_variants) > 1: #len(elem.compound_elements) > 1: # #elem.frequency > 1: # #
+
                 f.write(word + '\t' + elem.transcript + '\t' + str(elem.compound_elements) +
                         '\t' + str(elem.transcript_variants) + str(elem.frequency))
                 f.write('\n')
-                """
-                for e in elem.compound_elements:
-                    if e.startswith('frob_only'):
-                        
-                        break
-                """
+                
+
+
 
 
 if __name__ == '__main__':
