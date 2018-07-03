@@ -6,6 +6,17 @@ import sys
 SHORT_VOWELS = ['a', 'E', 'I', 'i', 'O', 'Y', 'u', '9', 'ai', 'ei', 'Ou', '9Y']
 LONG_VOWELS = ['a:', 'E:', 'I:', 'i:', 'O:', 'Y:', 'u:', '9:', 'ai:', 'ei:', 'Ou:', '9Y:']
 
+# These mappings are mostly not generally valid, but only in certain contexts. They are rare mappings, filtered out
+# of the list of all mappings occuring < 20 times in the aligned dictionary, where the corresponding transcripts are
+# correct, but most of the almost 300 mappings from this list are the results of erroneus transcripts.
+
+VALID_MAPPINGS = [('e', 'ei:'), ('ð', 'T'), ('g', 't'), ('a', 'ai:'), ('hl', ''), ('nd', 'm'), ('ts', ''),
+                  ('f', 't'), ('sl', 's t l_0'), ('nn', 'm'), ('sd', ''), ('hn', ''),
+                  ('mn', ''), ('nk', ''), ('kg', ''), ('tss', ''), ('nl', ''), ('gg', ''), ('', 'n t'),
+                  ('nu', 'Yi'), ('hé', 'C ei'), ('ng', ''), ('', 'n_0 t'), ('pp', ''), ('é', 'E'), ('nf', ''),
+                  ('zz', 't s'), ('pf', ''), ('gsl', 's t l_0'), ('gk', ''), ('hé', 'C E'), ('hé', 'C E h'),
+                  ('pb', ''), ('n', 't'), ('nn', 'J'), ('nn', 'N_0'), ('fn', 'm_0'), ('gn', 'N_0')]
+
 
 class G2P_align:
 
@@ -95,6 +106,7 @@ class G2P_align:
         self.g2p_map['hr'] = ['r_0']
         self.g2p_map['hn'] = ['n_0']
         self.g2p_map['sl'] = ['s t l']
+        self.g2p_map['tns'] = ['s']     # vatns - /v a s/
         self.g2p_map['x'] = ['k s']
         self.g2p_map['é'] = ['j E', 'j E:']
 
@@ -103,10 +115,10 @@ def set_alignment(c, word_arr, tr_arr, g_anchor, p_anchor, g_ind, p_ind, g2p_tup
     graphemes = ''.join(word_arr[g_anchor + 1: g_ind])
     phonemes = ' '.join(tr_arr[p_anchor + 1: p_ind])
     if len(graphemes) > 0 or len(phonemes) > 0:
-        g2p_tuples.append((graphemes, phonemes))
-    g2p_tuples.append((c, tr_arr[p_ind]))
+        g2p_tuples.append((graphemes.lower(), phonemes))
+    g2p_tuples.append((c.lower(), tr_arr[p_ind]))
     if len(c) > 1:
-        g_anchor = g_ind + 1
+        g_anchor = g_ind + len(c) - 1
     else:
         g_anchor = g_ind
     p_anchor = p_ind
@@ -117,8 +129,8 @@ def set_triple_alignment(c, word_arr, tr_arr, g_anchor, p_anchor, g_ind, p_ind, 
     graphemes = ''.join(word_arr[g_anchor + 1: g_ind])
     phonemes = ' '.join(tr_arr[p_anchor + 1: p_ind])
     if len(graphemes) > 0 or len(phonemes) > 0:
-        g2p_tuples.append((graphemes, phonemes))
-    g2p_tuples.append((c, ' '.join(tr_arr[p_ind: p_ind + 3])))
+        g2p_tuples.append((graphemes.lower(), phonemes))
+    g2p_tuples.append((c.lower(), ' '.join(tr_arr[p_ind: p_ind + 3])))
 
     g_anchor = g_ind + 1
     p_anchor = p_ind + 2
@@ -129,8 +141,8 @@ def set_two_phone_alignment(c, word_arr, tr_arr, g_anchor, p_anchor, g_ind, p_in
     graphemes = ''.join(word_arr[g_anchor + 1: g_ind])
     phonemes = ' '.join(tr_arr[p_anchor + 1: p_ind])
     if len(graphemes) > 0 or len(phonemes) > 0:
-        g2p_tuples.append((graphemes, phonemes))
-    g2p_tuples.append((c, ' '.join(tr_arr[p_ind: p_ind + 2])))
+        g2p_tuples.append((graphemes.lower(), phonemes))
+    g2p_tuples.append((c.lower(), ' '.join(tr_arr[p_ind: p_ind + 2])))
 
     g_anchor = g_ind
     p_anchor = p_ind + 1
@@ -147,6 +159,17 @@ def get_diphthong(ind, w_arr):
     return ''
 
 
+def get_trigram(ind, w_arr):
+    trigrams = ['tns']
+    if ind < len(w_arr) - 2:
+        trigr_arr = w_arr[ind:ind+3]
+        trigr = ''.join(trigr_arr)
+        if trigr.lower() in trigrams:
+            return trigr.lower()
+
+    return ''
+
+
 def align_g2p(word, transcript, g2p_map):
 
     word_arr = list(word)
@@ -157,10 +180,16 @@ def align_g2p(word, transcript, g2p_map):
     p_anchor = -1
     p_ind = 0
     skip_next = False
+    skip_two = False
     for g_ind, c in enumerate(word_arr):
         if skip_next:
             skip_next = False
             continue
+        if skip_two:
+            skip_next = True
+            skip_two = False
+            continue
+
         c = c.lower()
         if p_ind < len(tr_arr) and c in g2p_map:
             if c == 'x' or c == 'é':
@@ -170,6 +199,11 @@ def align_g2p(word, transcript, g2p_map):
                                                                    g_anchor, p_anchor, g_ind, p_ind, g2p_tuples)
                     p_ind += 2
                     continue
+
+            tri = get_trigram(g_ind, word_arr)
+            if len(tri) > 0:
+                c = tri
+                skip_two = True
 
             diph = get_diphthong(g_ind, word_arr)
             if len(diph) > 0:
@@ -214,7 +248,7 @@ def align_g2p(word, transcript, g2p_map):
             elif g_ind == len(word_arr) - 1:
                 graphemes = ''.join(word_arr[g_anchor + 1:])
                 phonemes = ' '.join(tr_arr[p_anchor + 1:])
-                g2p_tuples.append((graphemes, phonemes))
+                g2p_tuples.append((graphemes.lower(), phonemes))
                 break
 
         elif g_ind < len(tr_arr):
@@ -228,19 +262,26 @@ def align_g2p(word, transcript, g2p_map):
                     graphemes = ''.join(word_arr[g_anchor + 1:-1])
                     phonemes = ' '.join(tr_arr[p_anchor + 1:-1])
                     if len(graphemes) > 0 or len(phonemes) > 0:
-                        g2p_tuples.append((graphemes, phonemes))
+                        g2p_tuples.append((graphemes.lower(), phonemes))
                     g2p_tuples.append((last_char, tr_arr[-1]))
                     break
 
             graphemes = ''.join(word_arr[g_anchor + 1:])
             phonemes = ' '.join(tr_arr[p_anchor + 1:])
-            g2p_tuples.append((graphemes, phonemes))
+            g2p_tuples.append((graphemes.lower(), phonemes))
             break
 
     if g_anchor < len(word_arr) - 1 or p_anchor < len(tr_arr) - 1:
         graphemes = ''.join(word_arr[g_anchor + 1:])
         phonemes = ' '.join(tr_arr[p_anchor + 1:])
-        g2p_tuples.append((graphemes, phonemes))
+        g2p_tuples.append((graphemes.lower(), phonemes))
+
+    last_tuple = g2p_tuples[len(g2p_tuples) - 1]
+    #if last_tuple[0] == '' or last_tuple[1] == '':
+    if last_tuple == ('r', '') or last_tuple == ('ð', '') or last_tuple == ('m', '') or last_tuple == ('n', ''):
+        if len(word_arr) > 3 and word_arr[len(word_arr) - 2] != word_arr[len(word_arr) - 1]:
+            g2p_tuples.append(('ERR', 'ERR'))
+
     return g2p_tuples
 
 
@@ -248,7 +289,19 @@ def main():
 
     pron_dict_in = open(sys.argv[1]).readlines()
     g2p = G2P_align(pron_dict_in, 1000)
+    map_size = 0
+    for e in g2p.g2p_map.keys():
+        map_size += len(g2p.g2p_map[e])
+
+    print("initial map size: " + str(map_size))
+
+    map_size = 0
     g2p.extend_mapping(pron_dict_in)
+
+    for e in g2p.g2p_map.keys():
+        map_size += len(g2p.g2p_map[e])
+
+    print("second map size: " + str(map_size))
 
     tmp_g2p_map = {}
     g2p_map_v2 = {}
@@ -259,9 +312,9 @@ def main():
 
         for t in aligned:
             if t in tmp_g2p_map:
-                tmp_g2p_map[t].append(word + '  ---  ' + transcr)
+                tmp_g2p_map[t].append(word + '\t' + transcr)
             else:
-                tmp_g2p_map[t] = [word + '  ---  ' + transcr]
+                tmp_g2p_map[t] = [word + '\t' + transcr]
 
             if t in g2p_map_v2:
                 g2p_map_v2[t] = g2p_map_v2[t] + 1
@@ -270,15 +323,29 @@ def main():
 
         aligned_dict.append(word + '\t' + transcr + '\t' + str(aligned))
 
-    for al in aligned_dict:
-       print(str(al))
+    print("map size in the end: " + str(len(g2p_map_v2)))
+    #for al in aligned_dict:
+    #   print(str(al))
 
-    out = open('alignment_map_train_v2.txt', 'w')
-    for word in sorted(tmp_g2p_map, key=lambda x: len(tmp_g2p_map[x]), reverse=True):
+    out = open('alignment_map_train_0628.txt', 'w')
+    out_err = open('errors_in_alignment_0628.txt', 'w')
+    written_entries = set()
+    for pair in sorted(tmp_g2p_map, key=lambda x: len(tmp_g2p_map[x]), reverse=True):
         out.write(
-            str(word) + '\t' + str(len(tmp_g2p_map[word])) + '\n')
-        #if len(tmp_g2p_map[diff]) < 20:
-        #    print(str(diff) + '\t' + str(tmp_g2p_map[diff]))
+            str(pair) + '\t' + str(len(tmp_g2p_map[pair])) + '\n')
+
+
+        if len(tmp_g2p_map[pair]) < 20:
+            if pair in VALID_MAPPINGS:
+                continue
+            else:
+                for entry in tmp_g2p_map[pair]:
+                    if entry not in written_entries:
+                        out_err.write(entry + '\t' + str(pair) + '\n')
+                        written_entries.add(entry)
+
+
+            #print(str(pair) + '\t' + str(tmp_g2p_map[pair]))
         #if len(diff[1]) == 0 and len(tmp_g2p_map[diff]) < 100:
         #    print(str(diff) + '\t' + str(tmp_g2p_map[diff]))
 
