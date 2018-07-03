@@ -34,6 +34,22 @@ class PronDictEntry:
     def __repr__(self):
         return self.__str__()
 
+    def simplify_compound_variants(self):
+        tmp_variants = self.transcript_variants
+        self.transcript_variants = set()
+        orig_transcript = self.transcript
+        no_postaspir = orig_transcript.replace('_h', '')
+        self.transcript_variants.add(orig_transcript)
+        for t in tmp_variants:
+            if t.replace(':', '') == orig_transcript or orig_transcript.replace(':', '') == t:
+                continue
+            elif t == no_postaspir:
+                continue
+            elif t.replace(':', '') == no_postaspir or no_postaspir.replace(':', '') == t:
+                continue
+            else:
+                self.transcript_variants.add(t)
+
     def update_syllables(self, ind, prev_syll, syll):
         self.syllables[ind - 1] = prev_syll
         self.syllables[ind] = syll
